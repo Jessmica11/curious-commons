@@ -1,4 +1,6 @@
 const SHEET_ID='1ELAjjDmGoAAaRJ_UiL4by5RZVNC7_bsp3yoEU9IW8oE';
+// Your Twitch channel name, the part after twitch.tv/ (e.g. 'thecuriouscommons'). Leave empty to hide the button.
+const TWITCH_CHANNEL='';
 const SCHEDULE_TAB='Weekly Schedule', LIVE_TAB='Live', PINS_TAB='Pins';
 const $=id=>document.getElementById(id), HOST=new URLSearchParams(location.search).has('host');
 const S={rows:[],cur:null,liveTitle:'',pins:[],clock:null,override:false};
@@ -92,3 +94,10 @@ function linkify(parent,text){
   String(text).split(/(https?:\/\/[^\s]+)/g).forEach(part=>{
     if(/^https?:\/\//.test(part)){const a=el('a','View link');a.href=part;a.target='_blank';a.rel='noopener noreferrer';parent.append(a)}
     else if(part)parent.append(document.createTextNode(part))})}
+
+/* --- "Join the stream" button, shown in the header of every page once TWITCH_CHANNEL is set --- */
+document.addEventListener('DOMContentLoaded',()=>{
+  const t=document.querySelector('header .tag');if(!TWITCH_CHANNEL||!t)return;
+  const a=el('a','Join the stream','twitch');
+  a.href='https://www.twitch.tv/'+encodeURIComponent(TWITCH_CHANNEL);a.target='_blank';a.rel='noopener noreferrer';
+  a.append(el('span',' (opens in a new tab)','sr'));t.after(a)});
