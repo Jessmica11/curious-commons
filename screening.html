@@ -46,7 +46,7 @@ main .stack>.card:last-child{flex:1}
   .clock #state{font-size:1rem}
   .clock p.how{font-size:.9rem}
 }
-.kick[hidden]{display:none}
+.kick[hidden],.clock[hidden],.howto[hidden],.tools button[hidden]{display:none}
 .kick{display:flex;align-items:center;gap:.6rem;font:700 .95rem Cinzel,serif;letter-spacing:.14em;text-transform:uppercase;color:var(--brassl);margin:0 0 .35rem}
 .cameo{width:40px;height:40px;border-radius:50%;flex:none;background:url(profile.png) center 18%/cover;border:2px solid var(--brassl);box-shadow:0 0 0 1px #6b4a10}
 /* same outer size as the channel portrait, so nothing jumps when the poster swaps in */
@@ -85,7 +85,7 @@ header.film h1{font-size:clamp(1.6rem,4.5vw,2.6rem);line-height:1.15}
     <div id="state">The host has not started the clock yet</div>
     <p class="how">Our place in the documentary. Join any time: skip your player to this time.</p>
   </section>
-<details class="howto">
+<details class="howto" id="howto">
   <summary>How this works</summary>
   <ol>
     <li><b>Start your own copy</b> of the documentary (see Where To Watch).</li>
@@ -187,6 +187,10 @@ const nk=r=>'cc_notes_'+r.title+'|'+r.dateLabel;
 function renderDoc(){
   const r=S.cur,box=$('doc');box.textContent='';if(!r)return;
   $('nowh').textContent={now:'Now Showing',soon:'Coming Soon',past:'Past Screening'}[when(r)];
+  // the watch-party clock only belongs on the Now Showing film; the host still sees it everywhere, to run the desk
+  const live=when(r)==='now';
+  document.querySelector('.clock').hidden=!live&&!HOST;$('howto').hidden=!live;
+  document.querySelector('[data-cmd="time"]').hidden=!live;
   // once a film is open, its framed poster takes the portrait's place; the channel stays named and pictured beside it
   const hd=$('hdr'),film=isImg(r.img);hd.classList.toggle('film',film);$('kick').hidden=!film;$('h1').textContent=film?r.title:'The Curiosity Commons';
   if(film){const f=cover(r);f.setAttribute('role','img');f.setAttribute('aria-label','Poster for '+r.title);hd.firstElementChild.replaceWith(f)}
@@ -232,6 +236,7 @@ function parseClock(v){
 function tick(){
   const s=secs();$('time').textContent=s==null?'--:--:--':fmt(Math.max(0,s));
   $('state').textContent=s==null?'The host has not started the clock yet':S.clock.running?'Documentary timestamp · playing now':'Documentary timestamp · paused';
+  if(HOST&&S.cur&&when(S.cur)!=='now')$('state').textContent+=' · viewers don’t see the clock on this page';
 }
 function clockStr(){const s=secs();if(s==null)return'';return S.clock.running?'run|'+new Date(Date.now()-s*1000).toISOString():'pause|'+Math.round(s)}
 
@@ -264,9 +269,10 @@ async function refreshLive(force){
   let lv=fn?{clock:fn.clock||'',title:fn.title||''}:null;
   if(!lv){try{const t=await load(LIVE_TAB,/clock|now playing/i),r=t.rows[0]&&t.rows[0].c||[];lv={clock:cell(r[0]),title:cell(r[1])}}catch(e){}}
   if(lv){
-    if(Date.now()>(S.hold||0)&&lv.title!==S.liveTitle){S.liveTitle=lv.title;S.manualPick=false}
+    let changed=false;
+    if(Date.now()>(S.hold||0)&&lv.title!==S.liveTitle){S.liveTitle=lv.title;S.manualPick=false;changed=true}
     if(!S.override)S.clock=parseClock(lv.clock);
-    if(S.rows.length&&!S.manualPick){const n=autoPick();if(n!==S.cur){S.cur=n;renderDoc();enrich(n)}}
+    if(S.rows.length&&!S.manualPick){const n=autoPick();if(n!==S.cur){S.cur=n;renderDoc();enrich(n)}else if(changed&&S.cur)renderDoc()}
   }
   const pins=[...await sheetPins,...(fn&&Array.isArray(fn.pins)?fn.pins:[])];
   if(JSON.stringify(pins)!==JSON.stringify(S.pins)){S.pins=pins;renderPins()}
@@ -313,7 +319,10 @@ if(HOST){
 
   const parseHMS=v=>{const p=v.trim().split(':').map(Number);if(!v.trim()||p.some(isNaN))return null;return p.reduce((a,n)=>a*60+n,0)};
   const pushClock=ok=>{tick();send({action:'clock',clock:clockStr()},ok+VIEW)};
-  $('bPlay').onclick=()=>{const t=parseHMS($('setT').value),s=t!=null?t:(secs()||0);S.override=true;S.clock={running:true,base:s,at:Date.now()};$('setT').value='';pushClock('Clock started.')};
+  // Play also makes the film on this page Now Showing, for everyone
+  $('bPlay').onclick=()=>{const t=parseHMS($('setT').value),s=t!=null?t:(secs()||0);S.override=true;S.clock={running:true,base:s,at:Date.now()};$('setT').value='';
+    const r=S.cur;if(r){S.liveTitle=r.title;S.manualPick=false;S.hold=Date.now()+30000;renderDoc()}
+    tick();send({action:'clock',clock:clockStr(),title:r?r.title:''},(r?'Clock started, and '+r.title+' is now Now Showing.':'Clock started.')+VIEW)};
   $('bPause').onclick=()=>{const s=secs();if(s==null)return;S.override=true;S.clock={running:false,base:s,at:Date.now()};pushClock('Clock paused.')};
   $('bReset').onclick=()=>{S.override=true;S.clock={running:false,base:0,at:Date.now()};pushClock('Clock reset.')};
 
