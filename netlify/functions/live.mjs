@@ -35,7 +35,9 @@ export default async req => {
     case 'clock': {
       const c = text(b.clock, 60);
       if (!okClock(c)) return reply(400, { error: 'bad clock value' });
-      s.clock = c; break;
+      s.clock = c;
+      if (typeof b.title === 'string' && b.title.trim()) s.title = text(b.title, 200);   // Play also makes that film Now Showing
+      break;
     }
     case 'live':
       s.title = text(b.title, 200); break;
