@@ -36,7 +36,7 @@ export default async req => {
       const c = text(b.clock, 60);
       if (!okClock(c)) return reply(400, { error: 'bad clock value' });
       s.clock = c;
-      if (typeof b.title === 'string' && b.title.trim()) s.title = text(b.title, 200);   // Play also makes that film Now Showing
+      if (typeof b.title === 'string') s.title = text(b.title, 200);   // Play sets that film as Now Showing; Reset sends '' to clear it
       break;
     }
     case 'live':
