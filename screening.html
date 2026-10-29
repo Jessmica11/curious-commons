@@ -54,6 +54,7 @@ main .stack>.card:last-child{flex:1}
 header.film .frame{width:150px;flex:none}
 header.film h1{font-size:clamp(1.6rem,4.5vw,2.6rem);line-height:1.15}
 @media(max-width:820px){header.film .frame{width:112px}.cameo{width:32px;height:32px}.kick{font-size:.8rem}}
+.dlabel{font:700 .9rem Cinzel,var(--serif);letter-spacing:.12em;text-transform:uppercase;color:var(--brass);margin:.9rem 0 0}
 .notes-wide{grid-column:1/-1}
 .notes-wide #notes{min-height:320px}
 @media print{
@@ -192,7 +193,10 @@ function renderDoc(){
   else if(hd.firstElementChild.tagName!=='IMG'){const i=new Image();i.src='profile.png';i.alt='Portrait of a woman in a white gown seated before towering stacks of old books';hd.firstElementChild.replaceWith(i)}
   document.title=r.title+' · The Curious Commons';
   box.append(el('p',[r.dateLabel,r.year,r.dur].filter(Boolean).join(' · '),'meta'));
-  if(r.cats)box.append(el('p',r.cats,'cats'));
+  // "Documentary" is on every film, so drop it; keep any other genres, then label the text
+  const g=(r.cats||'').split(',').map(x=>x.trim()).filter(x=>x&&!/^documentary$/i.test(x)).join(', ');
+  if(g)box.append(el('p',g,'cats'));
+  box.append(el('h3','Description','dlabel'));
   if(r.desc.length>320){
     const d=el('p',r.desc.slice(0,300).trim()+'…','desc'),dt=document.createElement('details'),sm=el('summary','Read the full description');
     dt.append(sm,el('p',r.desc,'desc'));
