@@ -37,7 +37,7 @@
   <section class="card clock" aria-labelledby="clockh">
     <h2 id="clockh">Watch-Party Clock</h2>
     <div id="time" role="timer" aria-live="off">--:--:--</div>
-    <div id="state">Waiting for the host…</div>
+    <div id="state">The host has not started the clock yet</div>
     <p class="how">Press play on your own player, then drag it to this time. Joined late? This clock always shows where we are.</p>
   </section>
 
@@ -91,6 +91,7 @@ window.onEnriched=r=>{if(r===S.cur)renderDoc()};
 const nk=r=>'cc_notes_'+r.title+'|'+r.dateLabel;
 function renderDoc(){
   const r=S.cur,box=$('doc');box.textContent='';if(!r)return;
+  $('nowh').textContent={now:'Now Showing',soon:'Coming Soon',past:'Past Screening'}[when(r)];
   if(isImg(r.img)){const i=new Image();i.className='cover poster';i.alt='Poster for '+r.title;i.src=r.img;i.onerror=()=>i.remove();box.append(i)}
   box.append(el('p',r.title,'title'),el('p',[r.dateLabel,r.year,r.dur].filter(Boolean).join(' · '),'meta'));
   if(r.cats)box.append(el('p',r.cats,'cats'));
@@ -123,7 +124,7 @@ function parseClock(v){
   if(m==='pause'&&!isNaN(+x))return{running:false,base:+x,at:Date.now()};return null}
 function tick(){
   const s=secs();$('time').textContent=s==null?'--:--:--':fmt(Math.max(0,s));
-  $('state').textContent=s==null?'Waiting for the host…':S.clock.running?'Playing — we are here':'Paused';
+  $('state').textContent=s==null?'The host has not started the clock yet':S.clock.running?'Playing — we are here':'Paused';
   if(HOST)hostOut()}
 function clockStr(){const s=secs();if(s==null)return'';return S.clock.running?'run|'+new Date(Date.now()-s*1000).toISOString():'pause|'+Math.round(s)}
 function hostOut(){$('clockOut').textContent=clockStr()||'—'}

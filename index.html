@@ -14,7 +14,6 @@
 .wall a:hover{transform:translateY(-3px)}
 .wall .cap{padding:.6rem .25rem .25rem;text-align:center}
 .cap .m{display:block;font-size:.85rem;color:var(--muted)}
-.badge{display:inline-block;margin-top:.4rem;background:var(--brass);color:#fff;font:700 .75rem var(--sans);letter-spacing:.08em;text-transform:uppercase;padding:.15rem .7rem;border-radius:999px}
 #tonight{margin:.5rem 0 1.25rem;font-size:1.15rem}
 </style>
 </head>
@@ -30,7 +29,7 @@
     <h2 id="wallh">The Gallery Wall</h2>
     <p class="meta">Choose a documentary to open its page: where to watch, the watch-party clock, your own notes and our research links.</p>
     <p id="tonight"></p>
-    <ul class="gal wall" id="wall"></ul>
+    <div id="wall"></div>
   </section>
 </main>
 <footer>
@@ -40,18 +39,34 @@
 </div>
 <script src="commons.js"></script>
 <script>
+const DEBUG=new URLSearchParams(location.search).has('debug');
+function showDebug(){
+  let d=$('dbg');if(!d){d=el('section',null,'card');d.id='dbg';$('main').append(d)}
+  d.textContent='';d.append(el('h2','Diagnostics'));
+  d.append(el('p','Per film: what the page read from the TMDB column, and what the lookup said.','meta'));
+  S.rows.forEach(r=>{const p=el('p',null);p.append(el('b',r.title+': '));
+    p.append(document.createTextNode('TMDB cell = '+(r.tmdb||'(empty)')+' | poster = '+(r.img||'(none)')+' | lookup = '+(r.status||'not run yet')));d.append(p)})}
+window.onStatus=()=>{if(DEBUG)showDebug()};
 let q;window.onEnriched=()=>{cancelAnimationFrame(q);q=requestAnimationFrame(render)};
+const GROUPS=[['now','Now Showing','This week\u2019s screening.'],['soon','Coming Soon','Mark your calendar.'],['past','Past Screenings','Catch up on what we have watched.']];
 function render(){
-  const ul=$('wall');ul.textContent='';
-  const live=S.rows.length?autoPick():null;
-  S.rows.forEach(r=>{
-    enrich(r);
-    const li=document.createElement('li'),a=document.createElement('a'),cap=el('span',null,'cap');
-    a.href='screening.html?show='+encodeURIComponent(r.title);
-    cap.append(el('span',r.dateLabel,'d'),el('span',r.title,'n'),el('span',[r.year,r.dur].filter(Boolean).join(' · '),'m'));
-    if(r===live)cap.append(el('span',S.liveTitle?'On now':'Up next','badge'));
-    a.append(cover(r),cap);li.append(a);ul.append(li)});
-  if(live){const t=$('tonight');t.textContent='';const a=el('a',(S.liveTitle?'Join the screening: ':'Next up: ')+live.title+' →');a.href='screening.html';t.append(a)}
+  if(DEBUG)showDebug();
+  const wall=$('wall');wall.textContent='';
+  GROUPS.forEach(([k,title,blurb])=>{
+    const rows=S.rows.filter(r=>when(r)===k).sort((a,b)=>k==='past'?(b.date||0)-(a.date||0):(a.date||1e15)-(b.date||1e15));
+    if(!rows.length)return;
+    const sec=el('section',null,'wall-sec'),h=el('h3',title),ul=el('ul',null,'gal wall');
+    h.id='g-'+k;sec.setAttribute('aria-labelledby',h.id);
+    rows.forEach(r=>{
+      enrich(r);
+      const li=document.createElement('li'),a=document.createElement('a'),cap=el('span',null,'cap');
+      a.href='screening.html?show='+encodeURIComponent(r.title);
+      cap.append(el('span',r.dateLabel,'d'),el('span',r.title,'n'),el('span',[r.year,r.dur].filter(Boolean).join(' \u00b7 '),'m'));
+      if(k!=='past')cap.append(el('span',k==='now'?'Now showing':'Coming soon','badge '+k));
+      a.append(cover(r),cap);li.append(a);ul.append(li)});
+    sec.append(h,el('p',blurb,'meta'),ul);wall.append(sec)});
+  const next=S.rows.length?autoPick():null,t=$('tonight');t.textContent='';
+  if(next&&when(next)!=='past'){const a=el('a',(when(next)==='now'?'Now showing: ':'Coming soon: ')+next.title+(when(next)==='soon'&&next.dateLabel?' \u00b7 '+next.dateLabel:'')+' \u2192');a.href='screening.html?show='+encodeURIComponent(next.title);t.append(a)}
 }
 (async()=>{
   const lv=load(LIVE_TAB).then(t=>{const r=t.rows[0]&&t.rows[0].c||[];S.liveTitle=cell(r[1])}).catch(()=>{});

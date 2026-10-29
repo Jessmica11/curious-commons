@@ -62,3 +62,6 @@ button:hover{filter:brightness(1.15)}
 .err{color:#8a1c12;font-weight:600}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 .back{display:inline-block;min-height:44px;line-height:44px;color:#f0d890;font-weight:600}
+.badge{display:inline-block;margin-top:.4rem;background:var(--brass);color:#fff;font:700 .75rem var(--sans);letter-spacing:.08em;text-transform:uppercase;padding:.15rem .7rem;border-radius:999px}
+.badge.soon{background:var(--green2)}
+.wall-sec{margin-top:1.75rem}

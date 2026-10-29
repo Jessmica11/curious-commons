@@ -31,29 +31,47 @@ function parseSchedule(t){
     return{date:d,dateLabel:cell(c[iDate]),title:cell(c[iTitle]),year:cell(c[iYear]),dur:cell(c[iDur]),desc:cell(c[iDesc]),cats:cell(c[iCats]),tags:cell(c[iTags]),
       free:list(free),open:list(open),stream:list(stream),more:cell(c[iMore]),img:imgI>=0?cell(c[imgI]):'',tmdb:tmdbI>=0?cell(c[tmdbI]):''}});
 }
+const DAY=864e5;
+const midnight=()=>{const t=new Date();t.setHours(0,0,0,0);return t};
+// 'now' = this week's screening (its date was within the last 7 days, or today); 'soon' = still ahead; 'past' = older.
+// If the host types a title in Live!B2, that film is 'now' and the date rules only sort the others.
+function when(r){
+  const t=midnight(),lt=(S.liveTitle||'').toLowerCase();
+  if(lt&&S.rows.some(x=>x.title.toLowerCase()===lt))return r.title.toLowerCase()===lt?'now':(r.date&&r.date<t?'past':'soon');
+  if(!r.date)return'soon';
+  const d=Math.round((t-r.date)/DAY);
+  return d<0?'soon':d<7?'now':'past';
+}
 function autoPick(){
   const want=new URLSearchParams(location.search).get('show');
   if(want){const m=S.rows.find(r=>r.title===want);if(m)return m}
-  if(S.liveTitle){const m=S.rows.find(r=>r.title.toLowerCase()===S.liveTitle.toLowerCase());if(m)return m}
-  const today=new Date();today.setHours(0,0,0,0);
-  return S.rows.find(r=>r.date&&r.date>=today)||S.rows[S.rows.length-1];
+  const now=S.rows.find(r=>when(r)==='now');if(now)return now;
+  const soon=S.rows.filter(r=>when(r)==='soon').sort((a,b)=>(a.date||1e15)-(b.date||1e15))[0];
+  return soon||S.rows[S.rows.length-1];
 }
 const isImg=u=>/^(https?:\/\/\S+|[\w\-.\/]+\.(png|jpe?g|webp|gif|avif))$/i.test(u||'');
 const FN='/.netlify/functions/film';
 async function enrich(r){
-  if(r.tried||(isImg(r.img)&&r.desc&&(r.free.length||r.open.length||r.stream.length)))return;r.tried=true;
+  if(r.tried)return;
+  if(isImg(r.img)&&r.desc&&(r.free.length||r.open.length||r.stream.length)){r.status='skipped: the sheet already has a poster, description and platforms';return}
+  r.tried=true;
   try{
     const m=(r.tmdb||'').match(/(movie|tv)\/(\d+)/);
     const sq=(r.tmdb||'').match(/[?&]query=([^&#]+)/);
     let name=r.title;if(sq){try{name=decodeURIComponent(sq[1].replace(/\+/g,' '))}catch(e){}}
-    const d=await(await fetch(m?`${FN}?type=${m[1]}&id=${m[2]}`:`${FN}?title=${encodeURIComponent(name)}&year=${encodeURIComponent(r.year)}`)).json();
-    if(!d.found)return;
+    const res=await fetch(m?`${FN}?type=${m[1]}&id=${m[2]}`:`${FN}?title=${encodeURIComponent(name)}&year=${encodeURIComponent(r.year)}`);
+    if(res.status===404){r.status='the lookup function was not found (404): check the file is at netlify/functions/film.js and the site has redeployed';return}
+    const d=await res.json();
+    if(d.error){r.status='error from the function: '+d.error+(d.detail?' ('+d.detail+')':'');return}
+    if(!d.found){r.status='TMDB returned no match'+(m?'':' (no TMDB link in the sheet, so it searched by title)');return}
+    r.status='ok'+(m?' (used the TMDB link)':' (searched by title)');
     let changed=false;const np=!r.free.length&&!r.open.length&&!r.stream.length;r.api=r.api||{};
     if(!isImg(r.img)&&d.poster){r.img=d.poster;changed=true}
     if(!r.desc&&d.overview){r.desc=d.overview;changed=true}
     if(np)['free','open','stream'].forEach(k=>{if(d[k]&&d[k].length){r[k]=d[k];r.api[k]=1;changed=true}});
     if(changed&&window.onEnriched)onEnriched(r)
-  }catch(e){}
+  }catch(e){r.status='the lookup could not be reached or did not return data (is this the Netlify site, and has it redeployed?)'}
+  finally{if(window.onStatus)onStatus(r)}
 }
 function ph(r){const p=el('span',r.title,'ph');p.setAttribute('aria-hidden','true');return p}
 function cover(r){
