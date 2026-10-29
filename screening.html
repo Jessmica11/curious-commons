@@ -180,9 +180,13 @@ function renderDoc(){
   const lib=x=>/kanopy|hoopla/i.test(x);
   const names=[...new Set([...r.open,...r.free,...r.stream])];
   const tag=x=>r.free.includes(x)||r.open.includes(x)?(lib(x)?x+' (free with a library card)':x+' (free)'):x;
-  if(names.length){const d=el('div',null,'plat');names.forEach(x=>d.append(el('span',tag(x),'chip')));w.append(d)}
+  // open the service's own search for this title; unknown services fall back to the JustWatch page
+  const SITES=[[/netflix/i,'https://www.netflix.com/search?q='],[/amazon|prime video/i,'https://www.amazon.com/s?i=instant-video&k='],[/^max$|hbo/i,'https://play.max.com/search?q='],[/hulu/i,'https://www.hulu.com/search?q='],[/disney/i,'https://www.disneyplus.com/search?q='],[/apple tv/i,'https://tv.apple.com/search?term='],[/tubi/i,'https://tubitv.com/search/'],[/pluto/i,'https://pluto.tv/search/details?query='],[/peacock/i,'https://www.peacocktv.com/search?q='],[/paramount/i,'https://www.paramountplus.com/search/?q='],[/youtube/i,'https://www.youtube.com/results?search_query='],[/google play/i,'https://play.google.com/store/search?c=movies&q='],[/kanopy/i,'https://www.kanopy.com/en/search?query='],[/hoopla/i,'https://www.hoopladigital.com/search?q='],[/criterion/i,'https://www.criterionchannel.com/search?q='],[/mubi/i,'https://mubi.com/en/search/films?query='],[/plex/i,'https://watch.plex.tv/search?q='],[/shudder/i,'https://www.shudder.com/search?q='],[/amc\+/i,'https://www.amcplus.com/search?q='],[/fandango|vudu/i,'https://www.fandangoathome.com/search?searchString=']];
+  const href=x=>{const n=x.replace(/ \(rent\/buy\)$/,''),s=SITES.find(p=>p[0].test(n));return s?s[1]+encodeURIComponent(r.title):(r.watchLink||'')};
+  const chip=x=>{const u=href(x);if(!u)return el('span',tag(x),'chip');const a=el('a',tag(x),'chip');a.href=u;a.target='_blank';a.rel='noopener noreferrer';a.title='Opens '+x.replace(/ \(rent\/buy\)$/,'')+' in a new tab';return a};
+  if(names.length){const d=el('div',null,'plat');names.forEach(x=>d.append(chip(x)));w.append(d)}
   else w.append(el('p',r.status?'Not listed for this title yet.':'Looking this up\u2026','none'));
-  w.append(el('p','Where-to-watch information comes from JustWatch, via TMDB (US availability).','meta'));
+  w.append(el('p','Each tag opens that service in a new tab, searching for this title. Where-to-watch information comes from JustWatch, via TMDB (US availability).','meta'));
   $('status').textContent='Showing '+r.title;
   if(S.nkey!==nk(r)){S.nkey=nk(r);loadNotes(r)}
   renderPins();

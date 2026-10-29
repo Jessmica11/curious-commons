@@ -75,7 +75,7 @@ async function enrich(r){
     if(!r.year&&d.year){r.year=d.year;changed=true}
     if(!r.cats&&d.genres&&d.genres.length){r.cats=d.genres.join(', ');changed=true}
     if(!r.dur&&d.runtime){r.dur=Math.floor(d.runtime/60)+'H '+d.runtime%60+'M';changed=true}
-    ['free','open','stream'].forEach(k=>{r[k]=d[k]||[]});
+    ['free','open','stream'].forEach(k=>{r[k]=d[k]||[]});r.watchLink=d.watchLink||'';
     if(changed&&window.onEnriched)onEnriched(r)
   }catch(e){r.status='the lookup could not be reached or did not return data (is this the Netlify site, and has it redeployed?)'}
   finally{if(window.onStatus)onStatus(r)}
