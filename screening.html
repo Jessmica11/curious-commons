@@ -30,6 +30,8 @@
 .exports{display:flex;flex-wrap:wrap;gap:.4rem}
 .exports button{margin:0}
 #printArea{display:none}
+.notes-wide{grid-column:1/-1}
+.notes-wide #notes{min-height:320px}
 @media print{
   body{background:#fff!important;padding:0!important}
   .wrap,.skip{display:none!important}
@@ -77,7 +79,8 @@
     <div class="slip"><div class="slip-h">Commoner Resources</div><div class="slip-body"><div class="slip-sub" aria-hidden="true"><span>Time</span><span>Resource</span></div><ol class="pins" id="pins" tabindex="0" aria-label="Commoner resources, newest at the bottom"></ol></div></div>
   </section>
 
-  <section class="card" aria-labelledby="noteh">
+ </div>
+ <section class="card notes-wide" aria-labelledby="noteh">
     <h2 id="noteh">My Notes</h2>
     <p class="meta">Saved automatically in this browser only. Download a copy to keep it.</p>
     <div class="tools" id="tools" role="group" aria-label="Text formatting">
@@ -105,7 +108,6 @@
       <button type="button" id="exTxt" class="alt">Plain text</button>
     </div>
   </section>
- </div>
 </main>
 
 <section class="card host" id="hostpanel" hidden aria-labelledby="hosth">
@@ -172,11 +174,12 @@ function renderDoc(){
   if(r.tags)box.append(el('p','Topics: '+r.tags,'meta'));
   if(r.more){const p=el('p',null);p.append(el('b','Keep exploring: '));linkify(p,r.more);box.append(p)}
   const w=$('watch');w.textContent='';
-  [['Free',r.free,'Anyone can watch these at no cost.'],['Open Source (library)',r.open,'Free with a library card, e.g. Kanopy or Hoopla through your library.'],['Streaming',r.stream,'Subscription or rental.']].forEach(([n,a,h])=>{
-    w.append(el('h3',n));w.append(el('p',h,'meta'));
-    if(a.length){const d=el('div',null,'plat');a.forEach(x=>d.append(el('span',x,'chip')));w.append(d)}
-    else w.append(el('p',r.status?'Not listed for this title yet.':'Looking this up…','none'));
-  });
+  // one simple list; free and library options stay in it, just labelled
+  const lib=x=>/kanopy|hoopla/i.test(x);
+  const names=[...new Set([...r.open,...r.free,...r.stream])];
+  const tag=x=>r.free.includes(x)||r.open.includes(x)?(lib(x)?x+' (free with a library card)':x+' (free)'):x;
+  if(names.length){const d=el('div',null,'plat');names.forEach(x=>d.append(el('span',tag(x),'chip')));w.append(d)}
+  else w.append(el('p',r.status?'Not listed for this title yet.':'Looking this up\u2026','none'));
   w.append(el('p','Where-to-watch information comes from JustWatch, via TMDB (US availability).','meta'));
   $('status').textContent='Showing '+r.title;
   if(S.nkey!==nk(r)){S.nkey=nk(r);loadNotes(r)}
@@ -211,7 +214,7 @@ function renderPins(){
     else r.append(document.createTextNode(p.note));
     if(p.local)r.append(el('small','not on the sheet yet','loc'));
     ol.append(li)});
-  for(let i=Math.max(all.length,1);i<8;i++){const li=document.createElement('li');li.setAttribute('aria-hidden','true');li.append(el('span',''),el('span',''));ol.append(li)}
+  for(let i=Math.max(all.length,1);i<6;i++){const li=document.createElement('li');li.setAttribute('aria-hidden','true');li.append(el('span',''),el('span',''));ol.append(li)}
   ol.scrollTop=ol.scrollHeight}
 
 /* --- polling --- */

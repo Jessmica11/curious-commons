@@ -82,9 +82,11 @@ async function enrich(r){
 }
 function ph(r){const p=el('span',r.title,'ph');p.setAttribute('aria-hidden','true');return p}
 function cover(r){
-  if(!isImg(r.img))return ph(r);
+  const f=el('span',null,'frame');
+  if(!isImg(r.img)){f.append(ph(r));return f}
   const i=new Image();i.loading='lazy';i.alt='';i.className='cover';i.src=r.img;
-  i.onerror=()=>i.replaceWith(ph(r));return i}
+  i.onerror=()=>i.replaceWith(ph(r));
+  f.append(i);return f}
 
 function linkify(parent,text){
   String(text).split(/(https?:\/\/[^\s]+)/g).forEach(part=>{
