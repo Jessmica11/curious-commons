@@ -58,6 +58,6 @@ exports.handler = async event => {
       stream: [...flat.filter(n => !isLibrary(n)), ...rentBuy.map(n => n + ' (rent/buy)')]
     }, true);
   } catch (err) {
-    return reply(502, { error: 'lookup failed' });
+    return reply(502, { error: 'lookup failed', detail: String((err && err.message) || err) });
   }
 };
