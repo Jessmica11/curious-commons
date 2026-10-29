@@ -51,10 +51,16 @@ main .stack>.card:last-child{flex:1}
 .kick[hidden]{display:none}
 .kick{display:flex;align-items:center;gap:.6rem;font:700 .95rem Cinzel,serif;letter-spacing:.14em;text-transform:uppercase;color:var(--brassl);margin:0 0 .35rem}
 .cameo{width:40px;height:40px;border-radius:50%;flex:none;background:url(profile.png) center 18%/cover;border:2px solid var(--brassl);box-shadow:0 0 0 1px #6b4a10}
-header.film .frame{width:150px;flex:none}
+/* same outer size as the channel portrait, so nothing jumps when the poster swaps in */
+header.film .frame{width:180px;height:243px;flex:none}
+header.film .frame .cover,header.film .frame .ph{width:100%;height:100%;aspect-ratio:auto}
 header.film h1{font-size:clamp(1.6rem,4.5vw,2.6rem);line-height:1.15}
-@media(max-width:820px){header.film .frame{width:112px}.cameo{width:32px;height:32px}.kick{font-size:.8rem}}
+@media(max-width:820px){header.film .frame{width:120px;height:162px}.cameo{width:32px;height:32px}.kick{font-size:.8rem}}
 .dlabel{font:700 .9rem Cinzel,var(--serif);letter-spacing:.12em;text-transform:uppercase;color:var(--brass);margin:.9rem 0 0}
+.howto{margin:-.25rem 0 1.25rem;color:#f0d890}
+.howto summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center;color:#f0d890;text-decoration:underline}
+.howto ol{margin:.2rem 0 0;padding:.8rem 1.2rem .8rem 2.4rem;background:rgba(0,0,0,.35);border:1px solid var(--brassl);border-radius:6px;color:var(--paper)}
+.howto li{margin:.25rem 0}
 .notes-wide{grid-column:1/-1}
 .notes-wide #notes{min-height:320px}
 @media print{
@@ -80,8 +86,16 @@ header.film h1{font-size:clamp(1.6rem,4.5vw,2.6rem);line-height:1.15}
     <h2 id="clockh">Watch-Party Clock</h2>
     <div id="time" role="timer" aria-live="off">--:--:--</div>
     <div id="state">The host has not started the clock yet</div>
-    <p class="how">This is where we are in the documentary. Join any time: start your own copy and skip ahead to this timestamp to watch along with us.</p>
+    <p class="how">Our place in the documentary. Join any time: skip your player to this time.</p>
   </section>
+<details class="howto">
+  <summary>How this works</summary>
+  <ol>
+    <li><b>Start your own copy</b> of the documentary (see Where To Watch).</li>
+    <li><b>Skip to the clock time</b> above to watch along with us.</li>
+    <li><b>Take notes</b> as you go. They save in this browser, and you can download them.</li>
+  </ol>
+</details>
 <main id="main" class="grid">
  <div class="stack">
   <section class="card" aria-labelledby="nowh">
