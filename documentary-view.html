@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Curiosity Commons // Lecture Deck</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&family=Inter:wght@400;500;600&family=Special+Elite&display=swap');
+        @import url('https://googleapis.com');
 
         :root {
             --slate-bg: #1c2622;         
@@ -36,7 +36,7 @@
 
         .chalkboard-container {
             width: 100%;
-            max-width: 1350px;
+            max-width: 1400px;
             background-color: var(--slate-bg);
             border: 24px solid var(--border-oak);
             outline: 3px solid var(--accent-gold);
@@ -74,10 +74,7 @@
 
         .back-btn:hover { color: var(--accent-gold); border-color: var(--accent-gold); }
 
-        .lecture-header-block {
-            position: relative;
-            z-index: 10;
-        }
+        .lecture-header-block { position: relative; z-index: 10; }
 
         h1 {
             font-family: var(--font-serif);
@@ -98,13 +95,20 @@
             padding-bottom: 15px;
         }
 
+        /* Responsive grid adjustments depending on structural View Modes */
         .lecture-body {
             display: grid;
-            grid-template-columns: 1.1fr 1fr 0.9fr;
+            grid-template-columns: 1.1fr 1fr 1fr;
             gap: 35px;
             position: relative;
             z-index: 10;
             align-items: start;
+            transition: all 0.3s ease;
+        }
+
+        /* Public overlay optimized configuration grid styling */
+        body.public-view .lecture-body {
+            grid-template-columns: 1.3fr 1fr;
         }
 
         .flow-panel { display: flex; flex-direction: column; gap: 25px; }
@@ -136,6 +140,10 @@
             align-items: center;
             justify-content: center;
             text-align: center;
+        }
+
+        body.public-view .tracker-box .controls {
+            display: none !important; /* Conceal tracker adjustment buttons on stream */
         }
 
         .tracker-box h4 {
@@ -193,6 +201,7 @@
             background-color: rgba(0,0,0,0.25);
         }
 
+        /* Vintage Manila card slip architecture overlay */
         .library-slip-canvas {
             background-color: var(--card-paper);
             color: #3b352a;
@@ -253,12 +262,28 @@
             text-decoration: underline;
             font-weight: bold;
         }
+
+        /* Toggle view buttons for stream testing workflows */
+        .mode-toggle-deck {
+            position: fixed; bottom: 15px; right: 15px; z-index: 1000;
+            background: rgba(0,0,0,0.8); padding: 8px; border-radius: 4px;
+            border: 1px solid var(--accent-gold);
+        }
+
+        .mode-toggle-deck button {
+            background: transparent; color: white; border: 1px solid white;
+            padding: 4px 10px; font-size: 0.75rem; cursor: pointer; font-family: var(--font-sans);
+        }
+
+        .mode-toggle-deck button.active {
+            background: var(--accent-gold); color: black; border-color: var(--accent-gold);
+        }
     </style>
 </head>
 <body>
 
     <div class="chalkboard-container">
-        <a href="index.html" class="back-btn">← Return To Main Ledger</a>
+        <a href="index.html" class="back-btn" id="navBackBtn">← Return To Main Ledger</a>
         
         <div class="lecture-header-block">
             <h1 id="lectureTitle">Loading Curriculum...</h1>
@@ -278,127 +303,122 @@
                     <div id="timer">00:00:00</div>
                     <div class="controls">
                         <button id="startStopBtn">Start</button>
-                        <button id="resetBtn">Reset</button>
-                    </div>
-                </div>
-            </div>
+Use code with caution.
+Reset
 
-            <div class="live-notes-box">
-                <h3>Live Broadcast Scratchpad</h3>
-                <textarea id="liveStreamNotes" class="chalk-textarea" placeholder="Jot down streaming checkpoints... Use '-- Title' on a new line to checkout a resource card!"></textarea>
-            </div>
 
-            <div class="library-slip-box">
-                <h3>Library Checkout Slip</h3>
-                <div class="library-slip-canvas">
-                    <div class="slip-header">Library Bureau Overdue Record</div>
-                    <div id="slipRowsContainer"></div>
-                </div>
-            </div>
+scratchpad
 
-        </div>
-    </div>
+Library Checkout Slip
 
-    <script>
-        const params = new URLSearchParams(window.location.search);
-        const docTitle = params.get('title') || 'Almanac Entry';
-        
-        document.getElementById('lectureTitle').textContent = docTitle;
-        document.getElementById('lectureCategory').textContent = params.get('category') || 'General Curriculum';
-        document.getElementById('lectureSynopsis').textContent = params.get('synopsis') || 'No description provided.';
-
-        const notesTextArea = document.getElementById('liveStreamNotes');
-        const rowsContainer = document.getElementById('slipRowsContainer');
-        const storageKey = `notes_for_${btoa(docTitle).replace(/=/g, '')}`;
-        
-        notesTextArea.value = localStorage.getItem(storageKey) || '';
-
-        function renderCheckoutCards(textData) {
-            rowsContainer.innerHTML = '';
-            const lines = textData.split('
-');
-            
-            const d = new Date();
-            const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
-            const stampedDate = `${months[d.getMonth()]} ${String(d.getDate()).padStart(2,'0')} '${String(d.getFullYear()).substring(2)}`;
-
-            lines.forEach(line => {
-                if (line.trim().startsWith('--')) {
-                    const resourceContent = line.replace('--', '').trim();
-                    if (!resourceContent) return;
-
-                    const rowNode = document.createElement('div');
-                    rowNode.className = 'slip-row';
-
-                    const urlMatch = resourceContent.match(/(https?:\/\/[^\s]+)/g);
-                    let renderedText = resourceContent;
-
-                    if (urlMatch) {
-                        urlMatch.forEach(url => {
-                            renderedText = renderedText.replace(url, `<a href="${url}" target="_blank">View Source</a>`);
-                        });
-                    }
-
-                    rowNode.innerHTML = `
-                        <div class="slip-date">${stampedDate}</div>
-                        <div class="slip-resource">${renderedText}</div>
-                    `;
-                    rowsContainer.appendChild(rowNode);
-                }
-            });
-        }
-
-        renderCheckoutCards(notesTextArea.value);
-        
-        notesTextArea.addEventListener('input', () => {
-            localStorage.setItem(storageKey, notesTextArea.value);
-            renderCheckoutCards(notesTextArea.value);
-        });
-
-        let timerDisplay = document.getElementById('timer');
-        let startStopBtn = document.getElementById('startStopBtn');
-        let resetBtn = document.getElementById('resetBtn');
-
-        let startTime = 0, elapsedTime = 0, timerInterval, isRunning = false;
-
-        function formatTime(time) {
-            let hh = Math.floor(time / 3600000);
-            let mm = Math.floor((time / 3600000 - hh) * 60);
-            let ss = Math.floor(((time / 3600000 - hh) * 60 - mm) * 60);
-            return `${hh.toString().padStart(2,'0')}:${mm.toString().padStart(2,'0')}:${ss.toString().padStart(2,'0')}`;
-        }
-
-        function toggleTimer() {
-            if (!isRunning) {
-                startTime = Date.now() - elapsedTime;
-                timerInterval = setInterval(() => {
-                    elapsedTime = Date.now() - startTime;
-                    timerDisplay.textContent = formatTime(elapsedTime);
-                }, 1000);
-                startStopBtn.textContent = "Pause";
-                isRunning = true;
-            } else {
-                clearInterval(timerInterval);
-                startStopBtn.textContent = "Start";
-                isRunning = false;
-            }
-        }
-
-        startStopBtn.addEventListener('click', toggleTimer);
-        resetBtn.addEventListener('click', () => {
-            clearInterval(timerInterval);
-            elapsedTime = 0;
-            timerDisplay.textContent = "00:00:00";
-            startStopBtn.textContent = "Start";
-            isRunning = false;
-        });
-
-        window.addEventListener('keydown', (e) => {
-            if (e.key === ' ' || e.key === 'Spacebar') {
-                e.preventDefault();
-                toggleTimer();
-            }
-        });
-    </script>
-</body>
-</html>
+Library Bureau Overdue Record
+Broadcaster View
+Public View
+const params = new URLSearchParams(window.location.search);
+const docTitle = params.get('title') || 'Almanac Entry';
+document.getElementById('lectureTitle').textContent = docTitle;
+document.getElementById('lectureCategory').textContent = params.get('category') || 'General Curriculum';
+document.getElementById('lectureSynopsis').textContent = params.get('synopsis') || 'No description provided.';
+const notesTextArea = document.getElementById('liveStreamNotes');
+const rowsContainer = document.getElementById('slipRowsContainer');
+const storageKey = notes_for_${btoa(docTitle).replace(/=/g, '')};
+notesTextArea.value = localStorage.getItem(storageKey) || '';
+// Dynamic resource row stamping routine matrix
+function renderCheckoutCards(textData) {
+rowsContainer.innerHTML = '';
+const lines = textData.split('\n');
+const d = new Date();
+const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+const stampedDate = ${months[d.getMonth()]} ${String(d.getDate()).padStart(2,'0')} '${String(d.getFullYear()).substring(2)};
+lines.forEach(line => {
+if (line.trim().startsWith('--')) {
+const resourceContent = line.replace('--', '').trim();
+if (!resourceContent) return;
+const rowNode = document.createElement('div');
+rowNode.className = 'slip-row';
+const urlMatch = resourceContent.match(/(https?://[^\s]+)/g);
+let renderedText = resourceContent;
+if (urlMatch) {
+urlMatch.forEach(url => {
+renderedText = renderedText.replace(url, <a href="${url}" target="_blank">View Link</a>);
+});
+}
+rowNode.innerHTML = <div class="slip-date">${stampedDate}</div> <div class="slip-resource">${renderedText}</div>;
+rowsContainer.appendChild(rowNode);
+}
+});
+}
+// Setup View-Mode state engines (checks URL query strings or local UI clicks)
+function setViewMode(mode) {
+const body = document.body;
+const scratchpad = document.getElementById('scratchpadWrapper');
+const navBtn = document.getElementById('navBackBtn');
+const btnAdmin = document.getElementById('btnAdmin');
+const btnPublic = document.getElementById('btnPublic');
+if (mode === 'public') {
+body.classList.add('public-view');
+scratchpad.style.display = 'none';
+navBtn.style.display = 'none';
+btnPublic.className = 'active';
+btnAdmin.className = '';
+} else {
+body.classList.remove('public-view');
+scratchpad.style.display = 'block';
+navBtn.style.display = 'inline-flex';
+btnAdmin.className = 'active';
+btnPublic.className = '';
+}
+}
+// Sync inputs and parse tokens on frame adjustments
+renderCheckoutCards(notesTextArea.value);
+notesTextArea.addEventListener('input', () => {
+localStorage.setItem(storageKey, notesTextArea.value);
+renderCheckoutCards(notesTextArea.value);
+});
+// Initialize mode based on incoming URL parameters (e.g. documentary-view.html?view=public)
+if (params.get('view') === 'public') {
+setViewMode('public');
+document.getElementById('togglePanel').style.display = 'none'; // Conceal switch deck on production lines
+}
+// Live Playback Tracker Script Matrix
+let timerDisplay = document.getElementById('timer');
+let startStopBtn = document.getElementById('startStopBtn');
+let resetBtn = document.getElementById('resetBtn');
+let startTime = 0, elapsedTime = 0, timerInterval, isRunning = false;
+function formatTime(time) {
+let hh = Math.floor(time / 3600000);
+let mm = Math.floor((time / 3600000 - hh) * 60);
+let ss = Math.floor(((time / 3600000 - hh) * 60 - mm) * 60);
+return ${hh.toString().padStart(2,'0')}:${mm.toString().padStart(2,'0')}:${ss.toString().padStart(2,'0')};
+}
+function toggleTimer() {
+if (!isRunning) {
+startTime = Date.now() - elapsedTime;
+timerInterval = setInterval(() => {
+elapsedTime = Date.now() - startTime;
+timerDisplay.textContent = formatTime(elapsedTime);
+}, 1000);
+startStopBtn.textContent = "Pause";
+isRunning = true;
+} else {
+clearInterval(timerInterval);
+startStopBtn.textContent = "Start";
+isRunning = false;
+}
+}
+startStopBtn.addEventListener('click', toggleTimer);
+resetBtn.addEventListener('click', () => {
+clearInterval(timerInterval);
+elapsedTime = 0;
+timerDisplay.textContent = "00:00:00";
+startStopBtn.textContent = "Start";
+isRunning = false;
+});
+window.addEventListener('keydown', (e) => {
+if (e.key === ' ' || e.key === 'Spacebar') {
+if (document.activeElement !== notesTextArea) { // Prevent blank space pauses while actively typing scratch notes
+e.preventDefault();
+toggleTimer();
+}
+}
+});
