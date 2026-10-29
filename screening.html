@@ -30,6 +30,8 @@
 .exports{display:flex;flex-wrap:wrap;gap:.4rem}
 .exports button{margin:0}
 #printArea{display:none}
+/* the last card in each column stretches, so both columns end on the same line */
+main .stack{align-content:stretch;grid-template-rows:auto 1fr}
 .notes-wide{grid-column:1/-1}
 .notes-wide #notes{min-height:320px}
 @media print{

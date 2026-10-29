@@ -10,15 +10,15 @@
 <link rel="stylesheet" href="commons.css">
 <style>
 .wall{grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:2.2rem 1.6rem}
-.wall li{padding:14px 6px 0}
-.wall a{display:block;text-decoration:none;color:#1f160a;transition:transform .15s}
+.wall li{padding:14px 6px 0;display:flex}
+.wall a{display:flex;flex-direction:column;width:100%;text-decoration:none;color:#1f160a;transition:transform .15s}
 .wall a:hover{transform:translateY(-4px)}
-.wall .cap{margin:1rem 6px 0;padding:.55rem .5rem .6rem;text-align:center;border-radius:3px;border:1px solid #6b4a10;
+.wall .cap{flex:1;display:flex;flex-direction:column;align-items:center;margin:1rem 6px 0;padding:.55rem .5rem .6rem;text-align:center;border-radius:3px;border:1px solid #6b4a10;
   background:linear-gradient(180deg,#f3e0a2,#dcb85c 55%,#c39a3c);box-shadow:inset 0 0 0 2px rgba(255,243,184,.5),0 4px 10px rgba(0,0,0,.45)}
 .wall .cap .d{color:#3a2808}
 .wall .cap .n{color:#1f160a}
-.cap .m{display:block;font-size:.85rem;color:#3a2808}
-.cap .badge{margin-top:.45rem}
+.cap .m{display:block;font-size:.85rem;color:#3a2808;margin-bottom:.5rem}
+.cap .badge{margin-top:auto}
 #tonight{margin:.5rem 0 1.25rem;font-size:1.15rem}
 </style>
 </head>
@@ -53,7 +53,7 @@ function showDebug(){
     p.append(document.createTextNode('TMDB cell = '+(r.tmdb||'(empty)')+' | poster = '+(r.img||'(none)')+' | lookup = '+(r.status||'not run yet')));d.append(p)})}
 window.onStatus=()=>{if(DEBUG)showDebug()};
 let q;window.onEnriched=()=>{cancelAnimationFrame(q);q=requestAnimationFrame(render)};
-const GROUPS=[['now','Now Showing','This week\u2019s screening.'],['soon','Coming Soon'],['past','Past Screenings','Catch up on what we have watched.']];
+const GROUPS=[['now','Now Showing','This week\u2019s screening.'],['soon','Coming Soon',''],['past','Past Screenings','Catch up on what we have watched.']];
 function render(){
   if(DEBUG)showDebug();
   const wall=$('wall');wall.textContent='';
@@ -69,7 +69,7 @@ function render(){
       cap.append(el('span',r.dateLabel,'d'),el('span',r.title,'n'),el('span',[r.year,r.dur].filter(Boolean).join(' \u00b7 '),'m'));
       if(k!=='past')cap.append(el('span',k==='now'?'Now showing':'Coming soon','badge '+k));
       a.append(cover(r),cap);li.append(a);ul.append(li)});
-    sec.append(h,el('p',blurb,'meta'),ul);wall.append(sec)});
+    sec.append(h);if(blurb)sec.append(el('p',blurb,'meta'));sec.append(ul);wall.append(sec)});
   const next=S.rows.length?autoPick():null,t=$('tonight');t.textContent='';
   if(next&&when(next)!=='past'){const a=el('a',(when(next)==='now'?'Now showing: ':'Coming soon: ')+next.title+(when(next)==='soon'&&next.dateLabel?' \u00b7 '+next.dateLabel:'')+' \u2192');a.href='screening.html?show='+encodeURIComponent(next.title);t.append(a)}
 }
