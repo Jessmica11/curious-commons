@@ -149,38 +149,27 @@ header.film h1{font-size:clamp(1.6rem,4.5vw,2.6rem);line-height:1.15}
   <h2 id="hosth">Host Desk (only you see this)</h2>
   <p id="hostMsg" class="meta" role="status"></p>
   <details id="connect">
-    <summary>Connect to your sheet (one-time setup)</summary>
-    <label for="cfgUrl">Apps Script web app address</label>
-    <input id="cfgUrl" type="url" placeholder="https://script.google.com/macros/s/&hellip;/exec">
-    <label for="cfgKey">Password you set in the script</label>
-    <input id="cfgKey" type="password" autocomplete="off">
+    <summary>Host password (one-time setup)</summary>
+    <label for="cfgKey">The HOST_PASSWORD you set in Netlify</label>
+    <input id="cfgKey" type="password" autocomplete="current-password">
     <button id="bSaveCfg" type="button">Save in this browser</button>
   </details>
-  <p><button id="bTestCfg" type="button" class="alt">Test connection to my sheet</button></p>
+  <p><button id="bTestCfg" type="button" class="alt">Test connection</button></p>
   <div class="grid">
    <div>
     <h3>Clock</h3>
     <label for="setT">Start at (hh:mm:ss, optional)</label>
     <input id="setT" placeholder="00:32:10" inputmode="numeric">
     <button id="bPlay" type="button">Play</button><button id="bPause" class="alt" type="button">Pause</button><button id="bReset" class="alt" type="button">Reset</button>
-    <div id="manualClock">
-      <p>Not connected: paste this into cell <b>A2</b> of the <b>Live</b> tab so viewers sync:</p>
-      <div class="out" id="clockOut">&mdash;</div><button id="cpClock" class="alt" type="button">Copy</button>
-    </div>
     <h3>Live screening</h3>
     <p>The date picks the film automatically. Use these to override it.</p>
     <button id="bGoLive" type="button">Make this film Now Showing</button><button id="bUnlive" class="alt" type="button">Back to the schedule</button>
-    <p id="manualLive">Not connected: type the exact title into <b>B2</b> of the <b>Live</b> tab instead.</p>
    </div>
    <div>
     <h3>Pin a link</h3>
     <label for="pinNote">What is it?</label><input id="pinNote">
     <label for="pinUrl">Link</label><input id="pinUrl" type="url" placeholder="https://">
     <button id="bPin" type="button">Pin it</button>
-    <div id="manualPin">
-      <p>Not connected: copy the row, then paste it into <b>A:D</b> of the <b>Pins</b> tab:</p>
-      <div class="out" id="pinOut">&mdash;</div><button id="cpPin" class="alt" type="button">Copy row</button>
-    </div>
    </div>
   </div>
 </section>
@@ -243,9 +232,8 @@ function parseClock(v){
 function tick(){
   const s=secs();$('time').textContent=s==null?'--:--:--':fmt(Math.max(0,s));
   $('state').textContent=s==null?'The host has not started the clock yet':S.clock.running?'Documentary timestamp · playing now':'Documentary timestamp · paused';
-  if(HOST)hostOut()}
+}
 function clockStr(){const s=secs();if(s==null)return'';return S.clock.running?'run|'+new Date(Date.now()-s*1000).toISOString():'pause|'+Math.round(s)}
-function hostOut(){$('clockOut').textContent=clockStr()||'—'}
 
 /* --- pins --- */
 const localPins=()=>{try{return JSON.parse(localStorage.getItem('cc_pins')||'[]')}catch(e){return[]}};
@@ -258,25 +246,30 @@ function renderPins(){
     li.append(el('span',p.time||'—','stamp'),r);
     if(safe(p.url)){const a=el('a',p.note||p.url);a.href=p.url;a.target='_blank';a.rel='noopener noreferrer';r.append(a)}
     else r.append(document.createTextNode(p.note));
-    if(p.local)r.append(el('small','not on the sheet yet','loc'));
+    if(p.local)r.append(el('small','not saved yet','loc'));
+    if(HOST&&p.id){const x=el('button','Remove','alt unpin');x.type='button';x.setAttribute('aria-label','Remove pin: '+(p.note||p.url));x.onclick=()=>window.unpin&&unpin(p.id);r.append(' ',x)}
     ol.append(li)});
   for(let i=Math.max(all.length,1);i<6;i++){const li=document.createElement('li');li.setAttribute('aria-hidden','true');li.append(el('span',''),el('span',''));ol.append(li)}
   ol.scrollTop=ol.scrollHeight}
 
 /* --- polling --- */
+const LIVE_FN='/.netlify/functions/live';
+async function getLive(){
+  try{const r=await fetch(LIVE_FN,{cache:'no-store'});if(!r.ok)return null;const d=await r.json();return d&&!d.error?d:null}catch(e){return null}}
+// the clock and Now Showing come from the Netlify function; the sheet's Live tab is only a fallback. Pins come from both.
 async function refreshLive(force){
   if(document.hidden&&!force)return;
-  const[lv,pn]=await Promise.allSettled([load(LIVE_TAB,/clock|now playing/i),load(PINS_TAB,/note/i)]);
-  if(lv.status==='fulfilled'){
-    const r=lv.value.rows[0]&&lv.value.rows[0].c||[],title=cell(r[1]);
-    if(Date.now()>(S.hold||0)&&title!==S.liveTitle){S.liveTitle=title;S.manualPick=false}
-    if(!S.override)S.clock=parseClock(cell(r[0]));
+  const sheetPins=load(PINS_TAB,/note/i).then(t=>t.rows.filter(r=>r.c&&(cell(r.c[1])||cell(r.c[2]))).map(r=>({time:cell(r.c[0]),note:cell(r.c[1]),url:cell(r.c[2]),doc:cell(r.c[3])}))).catch(()=>[]);
+  const fn=await getLive();
+  let lv=fn?{clock:fn.clock||'',title:fn.title||''}:null;
+  if(!lv){try{const t=await load(LIVE_TAB,/clock|now playing/i),r=t.rows[0]&&t.rows[0].c||[];lv={clock:cell(r[0]),title:cell(r[1])}}catch(e){}}
+  if(lv){
+    if(Date.now()>(S.hold||0)&&lv.title!==S.liveTitle){S.liveTitle=lv.title;S.manualPick=false}
+    if(!S.override)S.clock=parseClock(lv.clock);
     if(S.rows.length&&!S.manualPick){const n=autoPick();if(n!==S.cur){S.cur=n;renderDoc();enrich(n)}}
   }
-  if(pn.status==='fulfilled'){
-    const pins=pn.value.rows.filter(r=>r.c&&(cell(r.c[1])||cell(r.c[2]))).map(r=>({time:cell(r.c[0]),note:cell(r.c[1]),url:cell(r.c[2]),doc:cell(r.c[3])}));
-    if(JSON.stringify(pins)!==JSON.stringify(S.pins)){S.pins=pins;renderPins()}
-  }
+  const pins=[...await sheetPins,...(fn&&Array.isArray(fn.pins)?fn.pins:[])];
+  if(JSON.stringify(pins)!==JSON.stringify(S.pins)){S.pins=pins;renderPins()}
 }
 async function init(){
   const live=refreshLive(true);
@@ -286,40 +279,37 @@ async function init(){
   if(!S.cur&&S.rows.length)S.cur=autoPick();
   if(S.cur){renderDoc();enrich(S.cur)}
   renderPins();tick();
-  setInterval(tick,1000);setInterval(refreshLive,20000);
+  setInterval(tick,1000);setInterval(refreshLive,15000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshLive()});
 }
 
 /* --- host desk --- */
 if(HOST){
   $('hostpanel').hidden=false;
-  const cfg=()=>{try{return JSON.parse(localStorage.getItem('cc_host')||'null')}catch(e){return null}};
-  const connected=()=>{const c=cfg();return !!(c&&c.url&&c.key)};
+  const KEYNAME='cc_host_key';
+  const pw=()=>{try{return localStorage.getItem(KEYNAME)||''}catch(e){return''}};
   const msg=t=>{$('hostMsg').textContent=t};
-  function syncManual(){['manualClock','manualLive','manualPin'].forEach(id=>$(id).hidden=connected());$('connect').open=!connected()}
-  const VIEW=' Viewers see it within about 20 seconds.';
+  const syncCfg=()=>{$('connect').open=!pw()};
+  const VIEW=' Viewers see it within about 15 seconds.';
   async function send(payload,ok){
-    if(!connected()){msg('Not connected to the sheet yet: use the copy boxes, or connect above.');return false}
-    const c=cfg();
-    let reply;
-    try{
-      const res=await fetch(c.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...payload,key:c.key})});
-      reply=(await res.text()).trim();
-    }catch(e){
-      // the request probably went through but this browser was not allowed to read Google's answer: do NOT resend (it could double a pin)
-      msg('Sent, but this browser could not read the reply. Check your Live or Pins tab. If nothing changes, the address must end in /exec and access must be set to Anyone.');return null}
-    if(reply==='ok'){msg(ok);return true}
-    if(reply==='bad password'){msg('The sheet connection rejected the password. Re-enter it under "Connect to your sheet" and check it matches the first line of your script.');return false}
-    if(/^<|sign in|accounts\.google/i.test(reply)){msg('Google asked for a sign-in instead of running the script. In Deploy, set "Who has access" to Anyone, then make a new deployment.');return false}
-    msg('The sheet connection answered: '+reply.slice(0,140));return false
+    if(!pw()){msg('Enter your host password under "Host password" first.');$('connect').open=true;return false}
+    let res,d={};
+    try{res=await fetch(LIVE_FN,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...payload,key:pw()})})}
+    catch(e){msg('Could not reach your site. Check your internet connection, and that this page is open on your Netlify address.');return false}
+    try{d=await res.json()}catch(e){}
+    if(res.ok){msg(ok);return true}
+    if(res.status===404){msg('The clock function was not found. Check the file is at netlify/functions/live.mjs and the site has redeployed.');return false}
+    if(res.status===401){msg('Wrong host password. Re-enter it under "Host password". It must match HOST_PASSWORD in Netlify exactly.');$('connect').open=true;return false}
+    if(/HOST_PASSWORD/.test(d.error||'')){msg('HOST_PASSWORD is not set yet. Add it in Netlify (Site configuration, Environment variables), then redeploy.');return false}
+    msg('The site answered: '+(d.error||('error '+res.status)));return false
   }
-  const c0=cfg();if(c0)$('cfgUrl').value=c0.url||'';
-  syncManual();
+  syncCfg();
   $('bSaveCfg').onclick=()=>{
-    const url=$('cfgUrl').value.trim(),key=$('cfgKey').value;
-    if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url)||!key){msg('Enter the web app address (it starts with https://script.google.com/ and ends with /exec) and your password.');return}
-    localStorage.setItem('cc_host',JSON.stringify({url,key}));$('cfgKey').value='';syncManual();msg('Saved in this browser. Press Test connection.')};
+    const key=$('cfgKey').value;if(!key){msg('Type your host password first.');return}
+    try{localStorage.setItem(KEYNAME,key)}catch(e){msg('This browser would not save it (private window?).');return}
+    $('cfgKey').value='';syncCfg();msg('Saved in this browser. Press Test connection.')};
   $('bTestCfg').onclick=()=>send({action:'ping'},'Connection works. The password is correct.');
+  window.unpin=async id=>{if(await send({action:'unpin',id},'Pin removed.'+VIEW))refreshLive(true)};
 
   const parseHMS=v=>{const p=v.trim().split(':').map(Number);if(!v.trim()||p.some(isNaN))return null;return p.reduce((a,n)=>a*60+n,0)};
   const pushClock=ok=>{tick();send({action:'clock',clock:clockStr()},ok+VIEW)};
@@ -330,16 +320,14 @@ if(HOST){
   $('bGoLive').onclick=()=>{if(!S.cur)return;S.liveTitle=S.cur.title;S.manualPick=false;S.hold=Date.now()+30000;renderDoc();send({action:'live',title:S.cur.title},'Now Showing set.'+VIEW)};
   $('bUnlive').onclick=()=>{S.liveTitle='';S.manualPick=false;S.hold=Date.now()+30000;const n=autoPick();if(n){S.cur=n;renderDoc();enrich(n)}send({action:'live',title:''},'Back to the schedule.'+VIEW)};
 
-  const copy=(id,btn)=>$(btn).onclick=async()=>{try{await navigator.clipboard.writeText($(id).dataset.v||$(id).textContent);msg('Copied.')}catch(e){}};
-  copy('clockOut','cpClock');copy('pinOut','cpPin');
-  $('bPin').onclick=()=>{
+  $('bPin').onclick=async()=>{
     const note=$('pinNote').value.trim(),url=$('pinUrl').value.trim();if(!note&&!url)return;
     if(url&&!safe(url)){msg('The link must start with http:// or https://');return}
     const s=secs(),p={time:s==null?'':fmt(s),note,url,doc:S.cur?S.cur.title:''};
-    localStorage.setItem('cc_pins',JSON.stringify([...localPins(),p]));
-    $('pinOut').dataset.v=[p.time,note,url,p.doc].join('\t');$('pinOut').textContent=[p.time,note,url,p.doc].join('  |  ');
-    $('pinNote').value='';$('pinUrl').value='';renderPins();
-    send({action:'pin',time:p.time,note,url,doc:p.doc},'Pinned.'+VIEW)};
+    $('pinNote').value='';$('pinUrl').value='';
+    if(await send({action:'pin',...p},'Pinned.'+VIEW)){refreshLive(true);return}
+    try{localStorage.setItem('cc_pins',JSON.stringify([...localPins(),p]))}catch(e){}
+    renderPins()};
 }
 /* --- notes editor: rich text, autosaves in this browser --- */
 const ed=$('notes'),rk=r=>'cc_rich_'+r.title+'|'+r.dateLabel;
