@@ -1,394 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Curiosity Commons // Hub Almanac</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&family=Inter:wght@400;500;600&display=swap');
-
-        :root {
-            --bg-dark: #121814;          
-            --parchment: #f2ebd9;        
-            --parchment-card: #eae0c9;   
-            --ink: #2b261f;              
-            --ink-muted: #5c5346;        
-            --accent-gold: #b38f43;      
-            --accent-gold-dark: #8c6d31; 
-            --font-display: 'Cinzel', serif;
-            --font-serif: 'IM Fell English', Georgia, serif;
-            --font-sans: 'Inter', system-ui, sans-serif;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            background-color: var(--bg-dark);
-            background-image: radial-gradient(var(--parchment-card) 1px, transparent 0), radial-gradient(var(--parchment-card) 1px, transparent 0);
-            background-size: 8px 8px;
-            background-position: 0 0, 4px 4px;
-            color: var(--ink);
-            font-family: var(--font-sans);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 40px 20px;
-        }
-
-        .dashboard {
-            width: 100%;
-            max-width: 1350px;
-            background-color: var(--parchment);
-            border: 12px double var(--accent-gold);
-            outline: 2px solid var(--ink);
-            outline-offset: -14px;
-            border-radius: 4px;
-            padding: 40px;
-            display: grid;
-            grid-template-columns: 1.9fr 1.1fr;
-            gap: 40px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.8), inset 0 0 100px rgba(43,38,31,0.15);
-        }
-
-        header {
-            grid-column: span 2;
-            text-align: center;
-            border-bottom: 1px dashed var(--accent-gold);
-            padding-bottom: 25px;
-            margin-bottom: 10px;
-        }
-
-        h1 {
-            font-family: var(--font-display);
-            font-size: 2.8rem;
-            font-weight: 400;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        .subtitle {
-            font-family: var(--font-serif);
-            font-style: italic;
-            color: var(--ink-muted);
-            font-size: 1.25rem;
-            margin-top: 5px;
-        }
-
-        .panel {
-            background-color: var(--parchment-card);
-            border: 1px solid rgba(140, 109, 49, 0.3);
-            border-radius: 4px;
-            padding: 25px;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.05), 0 4px 15px rgba(0,0,0,0.05);
-            position: relative;
-        }
-
-        h2 {
-            font-family: var(--font-display);
-            font-size: 1.1rem;
-            font-weight: 600;
-            letter-spacing: 1px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid var(--accent-gold);
-            padding-bottom: 6px;
-            text-transform: uppercase;
-        }
-
-        .calendar-schedule {
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-            max-height: 680px;
-            overflow-y: auto;
-            padding-right: 10px;
-        }
-
-        .calendar-schedule::-webkit-scrollbar { width: 5px; }
-        .calendar-schedule::-webkit-scrollbar-thumb { background: var(--accent-gold); border-radius: 3px; }
-
-        .month-block { display: flex; flex-direction: column; gap: 15px; }
-        
-        .month-header {
-            font-family: var(--font-display);
-            font-size: 0.95rem;
-            color: var(--accent-gold-dark);
-            font-weight: 600;
-            letter-spacing: 2px;
-            border-left: 3px solid var(--accent-gold);
-            padding-left: 10px;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-        }
-
-        .calendar-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-
-        .calendar-cell {
-            background-color: rgba(0, 0, 0, 0.02);
-            border: 1px solid rgba(43, 38, 31, 0.12);
-            border-radius: 4px;
-            padding: 16px;
-            cursor: pointer;
-            transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.2s, background-color 0.2s;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .calendar-cell:hover {
-            border-color: var(--accent-gold-dark);
-            background-color: rgba(255, 255, 255, 0.3);
-            transform: scale(1.02) rotate(-0.5deg);
-        }
-
-        .cell-date {
-            font-family: var(--font-display);
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--accent-gold-dark);
-            border-bottom: 1px dashed rgba(140, 109, 49, 0.3);
-            padding-bottom: 4px;
-            margin-bottom: 8px;
-        }
-
-        .cell-title {
-            font-family: var(--font-serif);
-            font-size: 1.15rem;
-            font-weight: bold;
-            line-height: 1.3;
-            margin-bottom: 4px;
-        }
-
-        .cell-topic {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--ink-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-        }
-
-        .cell-desc { font-size: 0.8rem; color: var(--ink-muted); line-height: 1.4; }
-
-        .loading-notice {
-            font-family: var(--font-serif);
-            font-style: italic;
-            text-align: center;
-            color: var(--ink-muted);
-            padding: 40px 0;
-            font-size: 1.2rem;
-        }
-
-        .right-column { display: flex; flex-direction: column; gap: 30px; }
-
-        .prep-textarea {
-            width: 100%;
-            height: 120px;
-            background-color: rgba(0,0,0,0.02);
-            border: 1px solid rgba(43,38,31,0.15);
-            font-family: var(--font-serif);
-            font-size: 1rem;
-            padding: 12px;
-            color: var(--ink);
-            resize: none;
-            border-radius: 4px;
-            line-height: 1.4;
-        }
-
-        .prep-textarea:focus {
-            outline: 1px solid var(--accent-gold);
-            background-color: rgba(255,255,255,0.4);
-        }
-
-        .links-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        
-        .link-card {
-            display: flex;
-            flex-direction: column;
-            background-color: rgba(0, 0, 0, 0.03);
-            padding: 12px;
-            border: 1px solid rgba(140, 109, 49, 0.2);
-            border-radius: 3px;
-            text-decoration: none;
-            color: var(--ink);
-            transition: all 0.2s ease;
-        }
-
-        .link-card:hover {
-            background-color: var(--parchment);
-            border-color: var(--ink);
-            transform: translateY(-2px);
-        }
-
-        .link-card .title { font-family: var(--font-display); font-size: 0.8rem; font-weight: 600; color: var(--accent-gold-dark); }
-        .link-card .desc { font-size: 0.75rem; color: var(--ink-muted); margin-top: 2px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Curious Commons · Gallery Wall</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=IM+Fell+English:ital@0;1&family=Inter:wght@400;600&family=Special+Elite&display=swap">
+<link rel="stylesheet" href="commons.css">
+<style>
+.wall{grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:1.4rem}
+.wall a{display:block;height:100%;text-decoration:none;color:var(--ink);background:var(--paper);border:6px double var(--brassl);padding:.45rem;border-radius:2px;box-shadow:0 8px 18px rgba(0,0,0,.55);transition:transform .15s}
+.wall a:hover{transform:translateY(-3px)}
+.wall .cap{padding:.6rem .25rem .25rem;text-align:center}
+.cap .m{display:block;font-size:.85rem;color:var(--muted)}
+.badge{display:inline-block;margin-top:.4rem;background:var(--brass);color:#fff;font:700 .75rem var(--sans);letter-spacing:.08em;text-transform:uppercase;padding:.15rem .7rem;border-radius:999px}
+#tonight{margin:.5rem 0 1.25rem;font-size:1.15rem}
+</style>
 </head>
 <body>
-
-    <div class="dashboard">
-        <header>
-            <h1>The Curiosity Commons<span>.</span></h1>
-            <div class="subtitle">Learning new things separately, but together.</div>
-        </header>
-
-        <main class="panel">
-            <h2>The Lecture & Screening Almanac</h2>
-            <div class="calendar-schedule" id="scheduleContainer">
-                <div class="loading-notice">Retrieving active ledger entries from the Google Sheet...</div>
-            </div>
-        </main>
-
-        <aside class="right-column">
-            <section class="panel">
-                <h2>Stream-Prep Clipboard</h2>
-                <textarea id="deskNotes" class="prep-textarea" placeholder="Draft overall channel alerts or permanent broadcast markers..."></textarea>
-            </section>
-
-            <section class="panel">
-                <h2>Control Deck Consoles</h2>
-                <div class="links-grid">
-                    <a href="https://www.twitch.tv/curiosity_commons" target="_blank" class="link-card">
-                        <span class="title">Twitch Broadcast</span>
-                        <span class="desc">curiosity_commons live</span>
-                    </a>
-                    <a href="https://docs.google.com/spreadsheets/d/1ELAjjDmGoAAaRJ_UiL4by5RZVNC7_bsp3yoEU9IW8oE/edit?usp=sharing" target="_blank" class="link-card">
-                        <span class="title">The Plan Ledger</span>
-                        <span class="desc">Google Sheet Vault</span>
-                    </a>
-                </div>
-            </section>
-        </aside>
-    </div>
-
-    <script>
-        const noteArea = document.getElementById('deskNotes');
-        noteArea.value = localStorage.getItem('commons_prep_notes') || '';
-        noteArea.addEventListener('input', () => {
-            localStorage.setItem('commons_prep_notes', noteArea.value);
-        });
-
-        const SPREADSHEET_ID = '1ELAjjDmGoAAaRJ_UiL4by5RZVNC7_bsp3yoEU9IW8oE';
-        const SHEET_NAME = 'Weekly Schedule';
-        const ACCESS_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_NAME)}&tq=`;
-
-        function readCellSafe(cellObj) {
-            if (!cellObj) return '';
-            if (cellObj.f !== undefined && cellObj.f !== null) return String(cellObj.f).trim();
-            if (cellObj.v !== undefined && cellObj.v !== null) return String(cellObj.v).trim();
-            return '';
-        }
-
-        async function fetchLiveLedger() {
-            try {
-                const response = await fetch(ACCESS_URL);
-                const text = await response.text();
-                
-                const jsonString = text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1);
-                const dataJSON = JSON.parse(jsonString);
-                const rows = dataJSON.table.rows;
-
-                const scheduleContainer = document.getElementById('scheduleContainer');
-                scheduleContainer.innerHTML = ''; 
-
-                let dataByMonth = {};
-
-                rows.forEach((row, index) => {
-                    if (index === 0) return; 
-                    
-                    const cells = row.c;
-                    if (!cells) return; 
-
-                    const dateCell = cells[0];
-                    let rawDate = readCellSafe(dateCell);
-                    const title = readCellSafe(cells[1]);
-                    const description = readCellSafe(cells[4]) || 'No detailed summary cataloged for this entry.';
-                    const topic = cells[3] ? "Duration: " + readCellSafe(cells[3]) : 'Unassigned Curricular Topic';
-                    const category = cells[2] ? "Year: " + readCellSafe(cells[2]) : 'General Education';
-
-                    if (!title) return; 
-
-                    let monthGroup = "November 2026"; 
-
-                    if (dateCell && dateCell.v && String(dateCell.v).startsWith('Date(')) {
-                        const dateParts = dateCell.v.replace('Date(', '').replace(')', '').split(',');
-                        const year = parseInt(dateParts[0]);
-                        const month = parseInt(dateParts[1]); 
-
-                        if (month === 10) monthGroup = "November " + year;
-                        if (month === 11) monthGroup = "December " + year;
-                        if (month === 0) monthGroup = "January " + year;
-                    } else if (rawDate) {
-                        if (rawDate.startsWith('12') || rawDate.includes('/12/')) monthGroup = "December 2026";
-                        if (rawDate.startsWith('01') || rawDate.startsWith('1/') || rawDate.includes('/01/')) monthGroup = "January 2027";
-                    }
-
-                    // Strict forced fallback rule override for Row 2 if it's completely missing its parsed date properties over the API
-                    if (index === 1 && (!rawDate || rawDate === "")) {
-                        rawDate = "11/01/2026";
-                        monthGroup = "November 2026";
-                    }
-
-                    if (!dataByMonth[monthGroup]) {
-                        dataByMonth[monthGroup] = [];
-                    }
-
-                    dataByMonth[monthGroup].push({
-                        dateLabel: rawDate,
-                        title: title,
-                        desc: description,
-                        category: category,
-                        topic: topic
-                    });
-                });
-
-                for (const [monthName, items] of Object.entries(dataByMonth)) {
-                    const monthBlock = document.createElement('div');
-                    monthBlock.className = 'month-block';
-
-                    const mHeader = document.createElement('div');
-                    mHeader.className = 'month-header';
-                    mHeader.textContent = monthName;
-                    monthBlock.appendChild(mHeader);
-
-                    const grid = document.createElement('div');
-                    grid.className = 'calendar-grid';
-
-                    items.forEach(item => {
-                        const cell = document.createElement('div');
-                        cell.className = 'calendar-cell';
-                        cell.setAttribute('onclick', `launchLecture(${JSON.stringify(item.title)}, ${JSON.stringify(item.category)}, ${JSON.stringify(item.desc)})`);
-                        
-                        cell.innerHTML = `
-                            <div class="cell-date">${item.dateLabel}</div>
-                            <div class="cell-title">${item.title}</div>
-                            <div class="cell-topic">${item.topic}</div>
-                            <div class="cell-desc">${item.desc.substring(0, 115)}${item.desc.length > 115 ? '...' : ''}</div>
-                        `;
-                        grid.appendChild(cell);
-                    });
-
-                    monthBlock.appendChild(grid);
-                    scheduleContainer.appendChild(monthBlock);
-                }
-
-            } catch (err) {
-                console.error("Ledger pipeline parsing anomaly: ", err);
-                document.getElementById('scheduleContainer').innerHTML = 
-                    `<div class="loading-notice" style="color:#b33e2b;">Failed to sync data from the Google Sheet. Verify share access is active.</div>`;
-            }
-        }
-
-        function launchLecture(title, category, synopsis) {
-            const currentParams = new URLSearchParams(window.location.search);
-            let viewAppend = '';
-            if (currentParams.get('view') === 'public') {
-                viewAppend = '&view=public';
-            }
-            const url = `documentary-view.html?title=${encodeURIComponent(title)}&category=${encodeURIComponent(category)}&synopsis=${encodeURIComponent(synopsis)}${viewAppend}`;
-            window.location.href = url;
-        }
-
-        window.addEventListener('DOMContentLoaded', fetchLiveLedger);
-    </script>
+<a class="skip" href="#main">Skip to content</a>
+<div class="wrap">
+<header>
+  <img src="profile.png" alt="Portrait of a woman in a white gown seated before towering stacks of old books">
+  <div><h1>The Curious Commons</h1><p class="tag">Learning new things separately, but together.</p></div>
+</header>
+<main id="main">
+  <section class="card" aria-labelledby="wallh">
+    <h2 id="wallh">The Gallery Wall</h2>
+    <p class="meta">Choose a documentary to open its page: where to watch, the watch-party clock, your own notes and our research links.</p>
+    <p id="tonight"></p>
+    <ul class="gal wall" id="wall"></ul>
+  </section>
+</main>
+<footer>
+  <p>Film information and posters from <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">TMDB</a>. This site uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.
+  Streaming availability from <a href="https://www.justwatch.com/" target="_blank" rel="noopener noreferrer">JustWatch</a>.</p>
+</footer>
+</div>
+<script src="commons.js"></script>
+<script>
+let q;window.onEnriched=()=>{cancelAnimationFrame(q);q=requestAnimationFrame(render)};
+function render(){
+  const ul=$('wall');ul.textContent='';
+  const live=S.rows.length?autoPick():null;
+  S.rows.forEach(r=>{
+    enrich(r);
+    const li=document.createElement('li'),a=document.createElement('a'),cap=el('span',null,'cap');
+    a.href='screening.html?show='+encodeURIComponent(r.title);
+    cap.append(el('span',r.dateLabel,'d'),el('span',r.title,'n'),el('span',[r.year,r.dur].filter(Boolean).join(' · '),'m'));
+    if(r===live)cap.append(el('span',S.liveTitle?'On now':'Up next','badge'));
+    a.append(cover(r),cap);li.append(a);ul.append(li)});
+  if(live){const t=$('tonight');t.textContent='';const a=el('a',(S.liveTitle?'Join the screening: ':'Next up: ')+live.title+' →');a.href='screening.html';t.append(a)}
+}
+(async()=>{
+  const lv=load(LIVE_TAB).then(t=>{const r=t.rows[0]&&t.rows[0].c||[];S.liveTitle=cell(r[1])}).catch(()=>{});
+  try{S.rows=parseSchedule(await load(SCHEDULE_TAB))}
+  catch(e){const p=el('p','Could not load the schedule ('+e.message+'). Check the sheet is shared as “Anyone with the link: Viewer”, then reload.','err');p.setAttribute('role','alert');$('tonight').append(p);return}
+  await lv;render()
+})();
+</script>
 </body>
 </html>

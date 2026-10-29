@@ -1,0 +1,62 @@
+const SHEET_ID='1ELAjjDmGoAAaRJ_UiL4by5RZVNC7_bsp3yoEU9IW8oE';
+const SCHEDULE_TAB='Weekly Schedule', LIVE_TAB='Live', PINS_TAB='Pins';
+const $=id=>document.getElementById(id), HOST=new URLSearchParams(location.search).has('host');
+const S={rows:[],cur:null,liveTitle:'',pins:[],clock:null,override:false};
+
+/* --- sheet loading via <script> (works from a local file, no CORS) --- */
+function load(tab){return new Promise((res,rej)=>{
+  const cb='cb'+Math.random().toString(36).slice(2),s=document.createElement('script');
+  const done=()=>{clearTimeout(t);delete window[cb];s.remove()};
+  const t=setTimeout(()=>{done();rej(new Error('timeout'))},15000);
+  window[cb]=d=>{done();d.status==='error'?rej(new Error('sheet')):res(d.table)};
+  s.onerror=()=>{done();rej(new Error('network'))};
+  s.src=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(tab)}&headers=1&tqx=out:json;responseHandler:${cb}`;
+  document.head.appendChild(s)})}
+const cell=c=>c?String(c.f??c.v??'').replace(/\u200b/g,'').trim():'';
+const el=(t,txt,cls)=>{const e=document.createElement(t);if(txt!=null)e.textContent=txt;if(cls)e.className=cls;return e};
+const safe=u=>/^https?:\/\//i.test(u);
+
+/* --- schedule --- */
+function parseSchedule(t){
+  const L=t.cols.map(c=>(c.label||'').toLowerCase());
+  const col=k=>L.map((l,i)=>l.includes(k)?i:-1).filter(i=>i>=0);
+  // columns are found by their heading (so you can add or reorder columns); the old positions are only a fallback
+  const at=(k,def)=>{const i=L.findIndex(l=>l.includes(k));return i>=0?i:def};
+  const iDate=at('date',0),iTitle=at('title',1),iYear=at('year',2),iDur=at('duration',3),iDesc=at('description',4),
+        iCats=at('categor',5),iTags=at('tag',6),iMore=at('follow',at('recommend',11));
+  const free=col('free'),open=col('open'),stream=col('streaming'),imgI=(col('poster')[0]??col('image')[0]??-1),tmdbI=col('tmdb')[0]??-1;
+  return t.rows.filter(r=>r.c&&cell(r.c[iTitle])).map(r=>{
+    const c=r.c,d=c[iDate]&&String(c[iDate].v).startsWith('Date(')?new Date(...c[iDate].v.slice(5,-1).split(',').map(Number)):null;
+    const list=idx=>idx.flatMap(i=>cell(c[i]).split(/[,;\n]+/)).map(x=>x.trim()).filter(Boolean);
+    return{date:d,dateLabel:cell(c[iDate]),title:cell(c[iTitle]),year:cell(c[iYear]),dur:cell(c[iDur]),desc:cell(c[iDesc]),cats:cell(c[iCats]),tags:cell(c[iTags]),
+      free:list(free),open:list(open),stream:list(stream),more:cell(c[iMore]),img:imgI>=0?cell(c[imgI]):'',tmdb:tmdbI>=0?cell(c[tmdbI]):''}});
+}
+function autoPick(){
+  const want=new URLSearchParams(location.search).get('show');
+  if(want){const m=S.rows.find(r=>r.title===want);if(m)return m}
+  if(S.liveTitle){const m=S.rows.find(r=>r.title.toLowerCase()===S.liveTitle.toLowerCase());if(m)return m}
+  const today=new Date();today.setHours(0,0,0,0);
+  return S.rows.find(r=>r.date&&r.date>=today)||S.rows[S.rows.length-1];
+}
+const isImg=u=>/^(https?:\/\/\S+|[\w\-.\/]+\.(png|jpe?g|webp|gif|avif))$/i.test(u||'');
+const FN='/.netlify/functions/film';
+async function enrich(r){
+  if(r.tried||(isImg(r.img)&&r.desc&&(r.free.length||r.open.length||r.stream.length)))return;r.tried=true;
+  try{
+    const m=(r.tmdb||'').match(/(movie|tv)\/(\d+)/);
+    const sq=(r.tmdb||'').match(/[?&]query=([^&#]+)/);
+    let name=r.title;if(sq){try{name=decodeURIComponent(sq[1].replace(/\+/g,' '))}catch(e){}}
+    const d=await(await fetch(m?`${FN}?type=${m[1]}&id=${m[2]}`:`${FN}?title=${encodeURIComponent(name)}&year=${encodeURIComponent(r.year)}`)).json();
+    if(!d.found)return;
+    let changed=false;const np=!r.free.length&&!r.open.length&&!r.stream.length;r.api=r.api||{};
+    if(!isImg(r.img)&&d.poster){r.img=d.poster;changed=true}
+    if(!r.desc&&d.overview){r.desc=d.overview;changed=true}
+    if(np)['free','open','stream'].forEach(k=>{if(d[k]&&d[k].length){r[k]=d[k];r.api[k]=1;changed=true}});
+    if(changed&&window.onEnriched)onEnriched(r)
+  }catch(e){}
+}
+function ph(r){const p=el('span',r.title,'ph');p.setAttribute('aria-hidden','true');return p}
+function cover(r){
+  if(!isImg(r.img))return ph(r);
+  const i=new Image();i.loading='lazy';i.alt='';i.className='cover';i.src=r.img;
+  i.onerror=()=>i.replaceWith(ph(r));return i}

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Curious Commons</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=IM+Fell+English:ital@0;1&family=Inter:wght@400;600&family=Special+Elite&display=swap">
+<link rel="stylesheet" href="commons.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="wrap">
+<a class="back" href="index.html">← Gallery wall</a>
+<header>
+  <img src="profile.png" alt="Portrait of a woman in a white gown seated before towering stacks of old books">
+  <div><h1>The Curious Commons</h1><p class="tag">Learning new things separately, but together.</p></div>
+</header>
+
+<main id="main" class="grid">
+ <div class="stack">
+  <section class="card" aria-labelledby="nowh">
+    <h2 id="nowh">Now Showing</h2>
+    <div class="sr" role="status" id="status"></div>
+    <div id="doc"><p class="none">Fetching the almanac…</p></div>
+  </section>
+
+  <section class="card" aria-labelledby="watchh">
+    <h2 id="watchh">Where To Watch</h2>
+    <div id="watch"><p class="none">Pick a screening from Coming Up.</p></div>
+  </section>
+
+  </div>
+
+ <div class="stack">
+  <section class="card clock" aria-labelledby="clockh">
+    <h2 id="clockh">Watch-Party Clock</h2>
+    <div id="time" role="timer" aria-live="off">--:--:--</div>
+    <div id="state">Waiting for the host…</div>
+    <p class="how">Press play on your own player, then drag it to this time. Joined late? This clock always shows where we are.</p>
+  </section>
+
+  <section class="card" aria-labelledby="pinh">
+    <h2 id="pinh">Pinned Links</h2>
+    <div class="slip"><div class="slip-h">Commoner Resources</div><div class="slip-body"><div class="slip-sub" aria-hidden="true"><span>Time</span><span>Resource</span></div><ol class="pins" id="pins" tabindex="0" aria-label="Commoner resources, newest at the bottom"></ol></div></div>
+  </section>
+
+  <section class="card" aria-labelledby="noteh">
+    <h2 id="noteh">My Notes</h2>
+    <p class="meta">Saved only in this browser. Nobody else can see them.</p>
+    <label for="notes" class="sr">My notes for this screening</label>
+    <textarea id="notes" placeholder="Arguments, questions, things to look up…"></textarea>
+    <button id="bStamp" class="alt" type="button">Stamp the time</button><button id="bTake" type="button">Take it home</button>
+  </section>
+ </div>
+</main>
+
+<section class="card host" id="hostpanel" hidden aria-labelledby="hosth">
+  <h2 id="hosth">Host Desk (only you see this)</h2>
+  <div class="grid">
+   <div>
+    <h3>Clock</h3>
+    <label for="setT">Set clock to (hh:mm:ss, optional)</label>
+    <input id="setT" placeholder="00:32:10" inputmode="numeric">
+    <button id="bPlay">Play</button><button id="bPause" class="alt">Pause</button><button id="bReset" class="alt">Reset</button>
+    <p>Paste this into cell <b>A2</b> of the <b>Live</b> tab so viewers sync:</p>
+    <div class="out" id="clockOut">—</div><button id="cpClock" class="alt">Copy</button>
+    <h3>Live screening</h3>
+    <p>Type the exact title into <b>B2</b> of the <b>Live</b> tab. Leave blank to follow the schedule dates.</p>
+   </div>
+   <div>
+    <h3>Pin a link</h3>
+    <label for="pinNote">What is it?</label><input id="pinNote">
+    <label for="pinUrl">Link</label><input id="pinUrl" type="url" placeholder="https://">
+    <button id="bPin">Pin it</button>
+    <p>Copy the row, then paste into <b>A:D</b> of the <b>Pins</b> tab so viewers see it:</p>
+    <div class="out" id="pinOut">—</div><button id="cpPin" class="alt">Copy row</button>
+   </div>
+  </div>
+</section>
+<footer>
+  <p>Film information and posters from <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">TMDB</a>. This site uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.
+  Streaming availability from <a href="https://www.justwatch.com/" target="_blank" rel="noopener noreferrer">JustWatch</a>.</p>
+</footer>
+</div>
+
+<script src="commons.js"></script>
+<script>
+window.onEnriched=r=>{if(r===S.cur)renderDoc()};
+const nk=r=>'cc_notes_'+r.title+'|'+r.dateLabel;
+function renderDoc(){
+  const r=S.cur,box=$('doc');box.textContent='';if(!r)return;
+  if(isImg(r.img)){const i=new Image();i.className='cover poster';i.alt='Poster for '+r.title;i.src=r.img;i.onerror=()=>i.remove();box.append(i)}
+  box.append(el('p',r.title,'title'),el('p',[r.dateLabel,r.year,r.dur].filter(Boolean).join(' · '),'meta'));
+  if(r.cats)box.append(el('p',r.cats,'cats'));
+  if(r.desc.length>320){
+    const d=el('p',r.desc.slice(0,300).trim()+'…','desc'),dt=document.createElement('details'),sm=el('summary','Read the full description');
+    dt.append(sm,el('p',r.desc,'desc'));
+    dt.addEventListener('toggle',()=>{d.hidden=dt.open});box.append(d,dt);
+  }else box.append(el('p',r.desc,'desc'));
+  if(r.tags)box.append(el('p','Topics: '+r.tags,'meta'));
+  if(r.more){const p=el('p',null);p.append(el('b','Keep exploring: '));p.append(document.createTextNode(r.more));box.append(p)}
+  const w=$('watch');w.textContent='';
+  [['Free',r.free,'Anyone can watch these at no cost.'],['Open Source (library)',r.open,'Free with a library card, e.g. Kanopy or Hoopla through your library.'],['Streaming',r.stream,'Subscription or rental.']].forEach(([n,a,h])=>{
+    w.append(el('h3',n));w.append(el('p',h,'meta'));
+    if(a.length){const d=el('div',null,'plat');a.forEach(x=>d.append(el('span',x,'chip')));w.append(d)}
+    else w.append(el('p','Not listed for this title yet.','none'));
+  });
+  if(r.api&&Object.keys(r.api).length)w.append(el('p','Some availability here comes from JustWatch via TMDB (US). Anything typed in the sheet takes priority.','meta'));
+  $('status').textContent='Showing '+r.title;
+  if(S.nkey!==nk(r)){S.nkey=nk(r);$('notes').value=localStorage.getItem(nk(r))||''}
+  renderPins();
+}
+
+/* --- clock --- */
+const pad=n=>String(Math.floor(n)).padStart(2,'0');
+const fmt=s=>`${pad(s/3600)}:${pad(s%3600/60)}:${pad(s%60)}`;
+function secs(){const c=S.clock;if(!c)return null;return c.running?c.base+(Date.now()-c.at)/1000:c.base}
+function parseClock(v){
+  if(!v)return null;const[m,x]=v.split('|');
+  if(m==='run'){const t=Date.parse(x);return isNaN(t)?null:{running:true,base:(Date.now()-t)/1000,at:Date.now()}}
+  if(m==='pause'&&!isNaN(+x))return{running:false,base:+x,at:Date.now()};return null}
+function tick(){
+  const s=secs();$('time').textContent=s==null?'--:--:--':fmt(Math.max(0,s));
+  $('state').textContent=s==null?'Waiting for the host…':S.clock.running?'Playing — we are here':'Paused';
+  if(HOST)hostOut()}
+function clockStr(){const s=secs();if(s==null)return'';return S.clock.running?'run|'+new Date(Date.now()-s*1000).toISOString():'pause|'+Math.round(s)}
+function hostOut(){$('clockOut').textContent=clockStr()||'—'}
+
+/* --- pins --- */
+const localPins=()=>{try{return JSON.parse(localStorage.getItem('cc_pins')||'[]')}catch(e){return[]}};
+const forCur=p=>!p.doc||(S.cur&&p.doc.toLowerCase()===S.cur.title.toLowerCase());
+function renderPins(){
+  const ol=$('pins');ol.textContent='';
+  const all=[...S.pins.filter(forCur),...(HOST?localPins().filter(p=>forCur(p)&&!S.pins.some(q=>q.url===p.url)).map(p=>({...p,local:1})):[])];
+  if(!all.length){const li=document.createElement('li');li.append(el('span',''),el('span','No resources pinned yet.','none'));ol.append(li)}
+  all.forEach(p=>{const li=document.createElement('li'),r=el('span',null);
+    li.append(el('span',p.time||'—','stamp'),r);
+    if(safe(p.url)){const a=el('a',p.note||p.url);a.href=p.url;a.target='_blank';a.rel='noopener noreferrer';r.append(a)}
+    else r.append(document.createTextNode(p.note));
+    if(p.local)r.append(el('small','on your desk only until pasted to the sheet','loc'));
+    ol.append(li)});
+  for(let i=Math.max(all.length,1);i<8;i++){const li=document.createElement('li');li.setAttribute('aria-hidden','true');li.append(el('span',''),el('span',''));ol.append(li)}
+  ol.scrollTop=ol.scrollHeight}
+
+/* --- polling --- */
+async function refreshLive(force){
+  if(document.hidden&&!force)return;
+  const[lv,pn]=await Promise.allSettled([load(LIVE_TAB),load(PINS_TAB)]);
+  if(lv.status==='fulfilled'){
+    const r=lv.value.rows[0]&&lv.value.rows[0].c||[],title=cell(r[1]);
+    if(title!==S.liveTitle){S.liveTitle=title;S.manualPick=false}
+    if(!S.override)S.clock=parseClock(cell(r[0]));
+    if(S.rows.length&&!S.manualPick){const n=autoPick();if(n!==S.cur){S.cur=n;renderDoc();enrich(n)}}
+  }
+  if(pn.status==='fulfilled'){
+    const pins=pn.value.rows.filter(r=>r.c&&(cell(r.c[1])||cell(r.c[2]))).map(r=>({time:cell(r.c[0]),note:cell(r.c[1]),url:cell(r.c[2]),doc:cell(r.c[3])}));
+    if(JSON.stringify(pins)!==JSON.stringify(S.pins)){S.pins=pins;renderPins()}
+  }
+}
+async function init(){
+  const live=refreshLive(true);
+  try{S.rows=parseSchedule(await load(SCHEDULE_TAB))}
+  catch(e){$('doc').innerHTML='';const p=el('p','Could not load the schedule ('+e.message+'). Check the sheet is shared as “Anyone with the link: Viewer”, then reload.','err');p.setAttribute('role','alert');$('doc').append(p);}
+  await live;
+  if(!S.cur&&S.rows.length)S.cur=autoPick();
+  if(S.cur){renderDoc();enrich(S.cur)}
+  renderPins();tick();
+  setInterval(tick,1000);setInterval(refreshLive,20000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshLive()});
+}
+
+/* --- host desk --- */
+if(HOST){
+  $('hostpanel').hidden=false;
+  const parseHMS=v=>{const p=v.trim().split(':').map(Number);if(!v.trim()||p.some(isNaN))return null;return p.reduce((a,n)=>a*60+n,0)};
+  $('bPlay').onclick=()=>{const t=parseHMS($('setT').value),s=t!=null?t:(secs()||0);S.override=true;S.clock={running:true,base:s,at:Date.now()};$('setT').value='';tick()};
+  $('bPause').onclick=()=>{const s=secs();if(s==null)return;S.override=true;S.clock={running:false,base:s,at:Date.now()};tick()};
+  $('bReset').onclick=()=>{S.override=true;S.clock={running:false,base:0,at:Date.now()};tick()};
+  const copy=(id,btn)=>$(btn).onclick=async()=>{try{await navigator.clipboard.writeText($(id).dataset.v||$(id).textContent);$('status').textContent='Copied'}catch(e){}};
+  copy('clockOut','cpClock');copy('pinOut','cpPin');
+  $('bPin').onclick=()=>{
+    const note=$('pinNote').value.trim(),url=$('pinUrl').value.trim();if(!note&&!url)return;
+    const s=secs(),p={time:s==null?'':fmt(s),note,url,doc:S.cur?S.cur.title:''};
+    localStorage.setItem('cc_pins',JSON.stringify([...localPins(),p]));
+    $('pinOut').dataset.v=[p.time,note,url,p.doc].join('\t');$('pinOut').textContent=[p.time,note,url,p.doc].join('  |  ');
+    $('pinNote').value='';$('pinUrl').value='';renderPins()};
+}
+$('notes').addEventListener('input',e=>S.cur&&localStorage.setItem(nk(S.cur),e.target.value));
+$('bStamp').onclick=()=>{
+  const s=secs();if(s==null){$('status').textContent='The clock has not started yet.';return}
+  const t=$('notes'),pos=t.selectionStart,before=t.value.slice(0,pos),after=t.value.slice(t.selectionEnd);
+  const ins=(before&&!before.endsWith('\n')?'\n':'')+'['+fmt(s)+'] ';
+  t.value=before+ins+after;const np=(before+ins).length;t.focus();t.setSelectionRange(np,np);t.dispatchEvent(new Event('input'))};
+$('bTake').onclick=()=>{
+  const r=S.cur;if(!r)return;
+  const L=[r.title,[r.dateLabel,r.year,r.dur].filter(Boolean).join(' · '),'','MY NOTES','',$('notes').value||'(none)','','LINKS FROM THE CHECKOUT CARD',''];
+  const mine=S.pins.filter(forCur);mine.forEach(p=>L.push((p.time?'['+p.time+'] ':'')+p.note+(p.url?' - '+p.url:'')));
+  if(!mine.length)L.push('(none)');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([L.join('\n')],{type:'text/plain'}));
+  a.download=r.title.replace(/[^a-z0-9]+/gi,'-').toLowerCase()+'-notes.txt';a.click();URL.revokeObjectURL(a.href)};
+init();
+</script>
+</body>
+</html>
