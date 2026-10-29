@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Curious Commons</title>
+<title>The Curiosity Commons</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=IM+Fell+English:ital@0;1&family=Inter:wght@400;600&family=Special+Elite&display=swap">
@@ -76,7 +76,7 @@ header.film h1{font-size:clamp(1.6rem,4.5vw,2.6rem);line-height:1.15}
 <a class="back" href="index.html">← Gallery wall</a>
 <header id="hdr">
   <img src="profile.png" alt="Portrait of a woman in a white gown seated before towering stacks of old books">
-  <div><p class="kick" id="kick" hidden><span class="cameo" aria-hidden="true"></span>The Curious Commons</p><h1 id="h1">The Curious Commons</h1><p class="tag">Commoners gaining power through knowledge</p></div>
+  <div><p class="kick" id="kick" hidden><span class="cameo" aria-hidden="true"></span>The Curiosity Commons</p><h1 id="h1">The Curiosity Commons</h1><p class="tag">Commoners gaining power through knowledge</p></div>
 </header>
 
   <section class="card clock" aria-labelledby="clockh">
@@ -199,10 +199,10 @@ function renderDoc(){
   const r=S.cur,box=$('doc');box.textContent='';if(!r)return;
   $('nowh').textContent={now:'Now Showing',soon:'Coming Soon',past:'Past Screening'}[when(r)];
   // once a film is open, its framed poster takes the portrait's place; the channel stays named and pictured beside it
-  const hd=$('hdr'),film=isImg(r.img);hd.classList.toggle('film',film);$('kick').hidden=!film;$('h1').textContent=film?r.title:'The Curious Commons';
+  const hd=$('hdr'),film=isImg(r.img);hd.classList.toggle('film',film);$('kick').hidden=!film;$('h1').textContent=film?r.title:'The Curiosity Commons';
   if(film){const f=cover(r);f.setAttribute('role','img');f.setAttribute('aria-label','Poster for '+r.title);hd.firstElementChild.replaceWith(f)}
   else if(hd.firstElementChild.tagName!=='IMG'){const i=new Image();i.src='profile.png';i.alt='Portrait of a woman in a white gown seated before towering stacks of old books';hd.firstElementChild.replaceWith(i)}
-  document.title=r.title+' · The Curious Commons';
+  document.title=r.title+' · The Curiosity Commons';
   box.append(el('p',[r.dateLabel,r.year,r.dur].filter(Boolean).join(' · '),'meta'));
   // "Documentary" is on every film, so drop it; keep any other genres, then label the text
   const g=(r.cats||'').split(',').map(x=>x.trim()).filter(x=>x&&!/^documentary$/i.test(x)).join(', ');
