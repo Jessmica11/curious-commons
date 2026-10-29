@@ -54,7 +54,7 @@ function showDebug(){
     p.append(document.createTextNode('TMDB cell = '+(r.tmdb||'(empty)')+' | poster = '+(r.img||'(none)')+' | lookup = '+(r.status||'not run yet')));d.append(p)})}
 window.onStatus=()=>{if(DEBUG)showDebug()};
 let q;window.onEnriched=()=>{cancelAnimationFrame(q);q=requestAnimationFrame(render)};
-const GROUPS=[['now','Now Showing','This week\u2019s screening.'],['soon','Coming Soon',''],['past','Past Screenings','Catch up on what we have watched.']];
+const GROUPS=[['now','Now Showing','Watching together right now. Open it for the watch-party clock.'],['soon','Coming Soon',''],['past','Past Screenings','Catch up on what we have watched.']];
 function render(){
   if(DEBUG)showDebug();
   const wall=$('wall');wall.textContent='';
@@ -74,11 +74,19 @@ function render(){
   const next=S.rows.length?autoPick():null,t=$('tonight');t.textContent='';
   if(next&&when(next)!=='past'){const a=el('a',(when(next)==='now'?'Now showing: ':'Coming soon: ')+next.title+(when(next)==='soon'&&next.dateLabel?' \u00b7 '+next.dateLabel:'')+' \u2192');a.href='screening.html?show='+encodeURIComponent(next.title);t.append(a)}
 }
+// Now Showing comes from the host's Play/Reset (Netlify function); the sheet's Live tab is only a fallback
+async function liveTitle(){
+  const fn=await getLive();if(fn)return fn.title||'';
+  try{const t=await load(LIVE_TAB,/clock|now playing/i),r=t.rows[0]&&t.rows[0].c||[];return cell(r[1])}catch(e){return null}}
+async function refreshLive(){
+  if(document.hidden||!S.rows.length)return;
+  const t=await liveTitle();if(t!=null&&t!==S.liveTitle){S.liveTitle=t;render()}}
 (async()=>{
-  const lv=load(LIVE_TAB,/clock|now playing/i).then(t=>{const r=t.rows[0]&&t.rows[0].c||[];S.liveTitle=cell(r[1])}).catch(()=>{});
+  const lv=liveTitle().then(t=>{if(t!=null)S.liveTitle=t});
   try{S.rows=parseSchedule(await load(SCHEDULE_TAB))}
   catch(e){const p=el('p','Could not load the schedule ('+e.message+'). Check the sheet is shared as “Anyone with the link: Viewer”, then reload.','err');p.setAttribute('role','alert');$('tonight').append(p);return}
-  await lv;render()
+  await lv;render();
+  setInterval(refreshLive,15000);document.addEventListener('visibilitychange',refreshLive);
 })();
 </script>
 </body>
