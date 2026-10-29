@@ -1,6 +1,6 @@
 const SHEET_ID='1ELAjjDmGoAAaRJ_UiL4by5RZVNC7_bsp3yoEU9IW8oE';
 // Your Twitch channel name, the part after twitch.tv/ (e.g. 'thecuriouscommons'). Leave empty to hide the button.
-const TWITCH_CHANNEL='';
+const TWITCH_CHANNEL='curiosity_commons';
 const SCHEDULE_TAB='Weekly Schedule', LIVE_TAB='Live', PINS_TAB='Pins';
 const $=id=>document.getElementById(id), HOST=new URLSearchParams(location.search).has('host');
 const S={rows:[],cur:null,liveTitle:'',pins:[],clock:null,override:false};
@@ -100,4 +100,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   const t=document.querySelector('header .tag');if(!TWITCH_CHANNEL||!t)return;
   const a=el('a','Join the stream','twitch');
   a.href='https://www.twitch.tv/'+encodeURIComponent(TWITCH_CHANNEL);a.target='_blank';a.rel='noopener noreferrer';
-  a.append(el('span',' (opens in a new tab)','sr'));t.after(a)});
+  a.append(el('span',' (opens in a new tab)','sr'));t.after(a);
+  // the same link inside the watch-party clock, where latecomers are looking
+  const c=document.querySelector('.clock');
+  if(c){const b=a.cloneNode(true);b.firstChild.textContent='Join Stream';b.className='twitch clock-join';c.append(b)}});
