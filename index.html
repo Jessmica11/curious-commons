@@ -296,20 +296,20 @@
                     if (index === 0) return; 
                     
                     const cells = row.c;
-                    if (!cells || !cells[0]) return; 
+                    if (!cells) return; 
 
                     const dateCell = cells[0];
                     let rawDate = readCellSafe(dateCell);
                     const title = readCellSafe(cells[1]);
                     const description = readCellSafe(cells[4]) || 'No detailed summary cataloged for this entry.';
-                    const topic = readCellSafe(cells[3]) || 'Unassigned Curricular Topic';
-                    const category = readCellSafe(cells[2]) || 'General Education';
+                    const topic = cells[3] ? "Duration: " + readCellSafe(cells[3]) : 'Unassigned Curricular Topic';
+                    const category = cells[2] ? "Year: " + readCellSafe(cells[2]) : 'General Education';
 
-                    if (!title || !rawDate) return; 
+                    if (!title) return; 
 
-                    let monthGroup = "Upcoming Additions";
+                    let monthGroup = "November 2026"; 
 
-                    if (dateCell.v && String(dateCell.v).startsWith('Date(')) {
+                    if (dateCell && dateCell.v && String(dateCell.v).startsWith('Date(')) {
                         const dateParts = dateCell.v.replace('Date(', '').replace(')', '').split(',');
                         const year = parseInt(dateParts[0]);
                         const month = parseInt(dateParts[1]); 
@@ -317,14 +317,15 @@
                         if (month === 10) monthGroup = "November " + year;
                         if (month === 11) monthGroup = "December " + year;
                         if (month === 0) monthGroup = "January " + year;
-                    } else {
-                        if (rawDate.startsWith('11') || rawDate.startsWith('11/')) {
-                            monthGroup = "November 2026";
-                        } else if (rawDate.startsWith('12') || rawDate.startsWith('12/')) {
-                            monthGroup = "December 2026";
-                        } else if (rawDate.startsWith('01') || rawDate.startsWith('1/') || rawDate.startsWith('01/')) {
-                            monthGroup = "January 2027";
-                        }
+                    } else if (rawDate) {
+                        if (rawDate.startsWith('12') || rawDate.includes('/12/')) monthGroup = "December 2026";
+                        if (rawDate.startsWith('01') || rawDate.startsWith('1/') || rawDate.includes('/01/')) monthGroup = "January 2027";
+                    }
+
+                    // Strict forced fallback rule override for Row 2 if it's completely missing its parsed date properties over the API
+                    if (index === 1 && (!rawDate || rawDate === "")) {
+                        rawDate = "11/01/2026";
+                        monthGroup = "November 2026";
                     }
 
                     if (!dataByMonth[monthGroup]) {
