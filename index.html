@@ -289,20 +289,24 @@
                     if (index === 0) return; 
                     
                     const cells = row.c;
-                    if (!cells || !cells[0] || !cells[1]) return; 
+                    if (!cells) return; 
 
-                    const rawDate = cells[0] ? cells[0].f || cells[0].v : '';
-                    const title = cells[1] ? cells[1].v : 'Untitled Document';
-                    const description = cells[4] ? cells[4].v : '';
-                    const category = cells[5] ? cells[5].v : 'General Curriculum';
-                    const topic = cells[6] ? cells[6].v : 'Unassigned Structural Topic';
+                    const rawDate = cells[0] ? String(cells[0].f || cells[0].v).trim() : '';
+                    const title = cells[1] ? String(cells[1].v).trim() : '';
+                    const description = cells[4] ? String(cells[4].v).trim() : 'No summary log mapped inside the ledger spreadsheet.';
+                    const category = cells[5] ? String(cells[5].v).trim() : 'General Curriculum';
+                    const topic = cells[6] ? String(cells[6].v).trim() : 'Unassigned Topic';
+
+                    if (!title || !rawDate) return; 
 
                     let monthGroup = "Upcoming Additions";
-                    if (rawDate.includes('/')) {
-                        const monthPart = rawDate.split('/')[0];
-                        if (monthPart === "11" || monthPart === "1") monthGroup = "November 2026";
-                        if (monthPart === "12" || monthPart === "01") monthGroup = "December 2026";
-                        if (monthPart === "01" && rawDate.split('/').includes('2027')) monthGroup = "January 2027";
+                    
+                    if (rawDate.startsWith('11') || rawDate.startsWith('11/')) {
+                        monthGroup = "November 2026";
+                    } else if (rawDate.startsWith('12') || rawDate.startsWith('12/')) {
+                        monthGroup = "December 2026";
+                    } else if (rawDate.startsWith('01') || rawDate.startsWith('1/') || rawDate.startsWith('01/')) {
+                        monthGroup = "January 2027";
                     } else if (rawDate.toLowerCase().includes('may')) {
                         monthGroup = "May Slate";
                     } else if (rawDate.toLowerCase().includes('jun')) {
@@ -337,14 +341,13 @@
                     items.forEach(item => {
                         const cell = document.createElement('div');
                         cell.className = 'calendar-cell';
-                        
                         cell.setAttribute('onclick', `launchLecture(${JSON.stringify(item.title)}, ${JSON.stringify(item.category)}, ${JSON.stringify(item.desc)})`);
                         
                         cell.innerHTML = `
                             <div class="cell-date">${item.dateLabel}</div>
                             <div class="cell-title">${item.title}</div>
                             <div class="cell-topic">${item.topic}</div>
-                            <div class="cell-desc">${item.desc.substring(0, 110)}${item.desc.length > 110 ? '...' : ''}</div>
+                            <div class="cell-desc">${item.desc.substring(0, 120)}${item.desc.length > 120 ? '...' : ''}</div>
                         `;
                         grid.appendChild(cell);
                     });
