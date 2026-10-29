@@ -56,6 +56,7 @@ exports.handler = async event => {
       year: String(hit.release_date || hit.first_air_date || '').slice(0, 4),
       runtime: hit.runtime || (hit.episode_run_time && hit.episode_run_time[0]) || 0,
       url: `https://www.themoviedb.org/${kind}/${hit.id}`,
+      watchLink: where.link || '',
       free,
       open: flat.filter(isLibrary),
       stream: [...flat.filter(n => !isLibrary(n)), ...rentBuy.map(n => n + ' (rent/buy)')]
