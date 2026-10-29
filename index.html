@@ -53,7 +53,7 @@ function showDebug(){
     p.append(document.createTextNode('TMDB cell = '+(r.tmdb||'(empty)')+' | poster = '+(r.img||'(none)')+' | lookup = '+(r.status||'not run yet')));d.append(p)})}
 window.onStatus=()=>{if(DEBUG)showDebug()};
 let q;window.onEnriched=()=>{cancelAnimationFrame(q);q=requestAnimationFrame(render)};
-const GROUPS=[['now','Now Showing','This week\u2019s screening.'],['soon','Coming Soon','Mark your calendar.'],['past','Past Screenings','Catch up on what we have watched.']];
+const GROUPS=[['now','Now Showing','This week\u2019s screening.'],['soon','Coming Soon'],['past','Past Screenings','Catch up on what we have watched.']];
 function render(){
   if(DEBUG)showDebug();
   const wall=$('wall');wall.textContent='';
