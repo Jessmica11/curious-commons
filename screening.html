@@ -101,7 +101,7 @@ function renderDoc(){
     dt.addEventListener('toggle',()=>{d.hidden=dt.open});box.append(d,dt);
   }else box.append(el('p',r.desc,'desc'));
   if(r.tags)box.append(el('p','Topics: '+r.tags,'meta'));
-  if(r.more){const p=el('p',null);p.append(el('b','Keep exploring: '));p.append(document.createTextNode(r.more));box.append(p)}
+  if(r.more){const p=el('p',null);p.append(el('b','Keep exploring: '));linkify(p,r.more);box.append(p)}
   const w=$('watch');w.textContent='';
   [['Free',r.free,'Anyone can watch these at no cost.'],['Open Source (library)',r.open,'Free with a library card, e.g. Kanopy or Hoopla through your library.'],['Streaming',r.stream,'Subscription or rental.']].forEach(([n,a,h])=>{
     w.append(el('h3',n));w.append(el('p',h,'meta'));
