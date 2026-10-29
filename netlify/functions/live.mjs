@@ -15,11 +15,36 @@ const text = (v, n) => String(v ?? '').replace(/[\u0000-\u001f]/g, ' ').trim().s
 const okUrl = u => u === '' || /^https?:\/\/\S+$/i.test(u);
 const okClock = c => c === '' || (/^run\|/.test(c) && !isNaN(Date.parse(c.slice(4)))) || /^pause\|\d{1,6}$/.test(c);
 
+// Short plain-text answers for chatbot commands (StreamElements reads the first 400 bytes):
+//   ?say=clock -> the watch-party time      ?say=now -> what is showing, with a link
+const pad = n => String(Math.floor(n)).padStart(2, '0');
+const hms = s => `${pad(s / 3600)}:${pad(s % 3600 / 60)}:${pad(s % 60)}`;
+function chat(say, s, origin) {
+  const page = s.title ? `${origin}/screening.html?show=${encodeURIComponent(s.title)}` : origin;
+  const film = s.title ? ` in "${s.title}"` : '';
+  const [mode, val] = String(s.clock || '').split('|');
+  let msg;
+  if (say === 'now') {
+    msg = s.title ? `Now showing: ${s.title}. Where to watch, the watch-party clock and notes: ${page}`
+                  : `Nothing is showing right now. See what's coming up: ${origin}`;
+  } else if (mode === 'run') {
+    msg = `We're at ${hms(Math.max(0, (Date.now() - Date.parse(val)) / 1000))}${film}. Skip your copy to that time to watch along: ${page}`;
+  } else if (mode === 'pause') {
+    msg = `Paused at ${hms(+val)}${film}. Line your copy up there and we'll start together: ${page}`;
+  } else {
+    msg = `The watch-party clock hasn't started yet. See what's showing: ${origin}`;
+  }
+  return new Response(msg.slice(0, 390), { headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } });
+}
+
 export default async req => {
   const store = getStore({ name: 'commons', consistency: 'strong' });
   const read = async () => ({ clock: '', title: '', pins: [], ...((await store.get(KEY, { type: 'json' })) || {}) });
 
-  if (req.method === 'GET') return reply(200, await read());
+  if (req.method === 'GET') {
+    const say = new URL(req.url).searchParams.get('say');
+    return say ? chat(say, await read(), new URL(req.url).origin) : reply(200, await read());
+  }
   if (req.method !== 'POST') return reply(405, { error: 'method not allowed' });
 
   const PW = process.env.HOST_PASSWORD;
