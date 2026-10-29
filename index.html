@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Curiosity Commons // Hub Almanac</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&family=Inter:wght@400;500;600&display=swap');
+        @import url('https://googleapis.com');
 
         :root {
             --bg-dark: #121814;          
@@ -247,11 +247,11 @@
             <section class="panel">
                 <h2>Control Deck Consoles</h2>
                 <div class="links-grid">
-                    <a href="https://www.twitch.tv/curiosity_commons" target="_blank" class="link-card">
+                    <a href="https://twitch.tv" target="_blank" class="link-card">
                         <span class="title">Twitch Broadcast</span>
                         <span class="desc">curiosity_commons live</span>
                     </a>
-                    <a href="https://docs.google.com/spreadsheets/d/1ELAjjDmGoAAaRJ_UiL4by5RZVNC7_bsp3yoEU9IW8oE/edit?usp=sharing" target="_blank" class="link-card">
+                    <a href="https://google.com" target="_blank" class="link-card">
                         <span class="title">The Plan Ledger</span>
                         <span class="desc">Google Sheet Vault</span>
                     </a>
@@ -269,106 +269,95 @@
 
         const SPREADSHEET_ID = '1ELAjjDmGoAAaRJ_UiL4by5RZVNC7_bsp3yoEU9IW8oE';
         const SHEET_NAME = 'Weekly Schedule';
-        const ACCESS_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_NAME)}&tq=`;
+        const ACCESS_URL = `https://google.com{SPREADSHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_NAME)}&tq=`;
 
-        async function fetchLiveLedger() {
-            try {
-                const response = await fetch(ACCESS_URL);
-                const text = await response.text();
-                
-                const jsonString = text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1);
-                const dataJSON = JSON.parse(jsonString);
-                const rows = dataJSON.table.rows;
-
-                const scheduleContainer = document.getElementById('scheduleContainer');
-                scheduleContainer.innerHTML = ''; 
-
-                let dataByMonth = {};
-
-                rows.forEach((row, index) => {
-                    if (index === 0) return; 
-                    
-                    const cells = row.c;
-                    if (!cells) return; 
-
-                    const rawDate = cells[0] ? String(cells[0].f || cells[0].v).trim() : '';
-                    const title = cells[1] ? String(cells[1].v).trim() : '';
-                    const description = cells[4] ? String(cells[4].v).trim() : 'No summary log mapped inside the ledger spreadsheet.';
-                    const category = cells[5] ? String(cells[5].v).trim() : 'General Curriculum';
-                    const topic = cells[6] ? String(cells[6].v).trim() : 'Unassigned Topic';
-
-                    if (!title || !rawDate) return; 
-
-                    let monthGroup = "Upcoming Additions";
-                    
-                    if (rawDate.startsWith('11') || rawDate.startsWith('11/')) {
-                        monthGroup = "November 2026";
-                    } else if (rawDate.startsWith('12') || rawDate.startsWith('12/')) {
-                        monthGroup = "December 2026";
-                    } else if (rawDate.startsWith('01') || rawDate.startsWith('1/') || rawDate.startsWith('01/')) {
-                        monthGroup = "January 2027";
-                    } else if (rawDate.toLowerCase().includes('may')) {
-                        monthGroup = "May Slate";
-                    } else if (rawDate.toLowerCase().includes('jun')) {
-                        monthGroup = "June Slate";
-                    }
-
-                    if (!dataByMonth[monthGroup]) {
-                        dataByMonth[monthGroup] = [];
-                    }
-
-                    dataByMonth[monthGroup].push({
-                        dateLabel: rawDate,
-                        title: title,
-                        desc: description,
-                        category: category,
-                        topic: topic
-                    });
-                });
-
-                for (const [monthName, items] of Object.entries(dataByMonth)) {
-                    const monthBlock = document.createElement('div');
-                    monthBlock.className = 'month-block';
-
-                    const mHeader = document.createElement('div');
-                    mHeader.className = 'month-header';
-                    mHeader.textContent = monthName;
-                    monthBlock.appendChild(mHeader);
-
-                    const grid = document.createElement('div');
-                    grid.className = 'calendar-grid';
-
-                    items.forEach(item => {
-                        const cell = document.createElement('div');
-                        cell.className = 'calendar-cell';
-                        cell.setAttribute('onclick', `launchLecture(${JSON.stringify(item.title)}, ${JSON.stringify(item.category)}, ${JSON.stringify(item.desc)})`);
-                        
-                        cell.innerHTML = `
-                            <div class="cell-date">${item.dateLabel}</div>
-                            <div class="cell-title">${item.title}</div>
-                            <div class="cell-topic">${item.topic}</div>
-                            <div class="cell-desc">${item.desc.substring(0, 120)}${item.desc.length > 120 ? '...' : ''}</div>
-                        `;
-                        grid.appendChild(cell);
-                    });
-
-                    monthBlock.appendChild(grid);
-                    scheduleContainer.appendChild(monthBlock);
-                }
-
-            } catch (err) {
-                console.error("Ledger pipeline parsing anomaly: ", err);
-                document.getElementById('scheduleContainer').innerHTML = 
-                    `<div class="loading-notice" style="color:#b33e2b;">Failed to sync data from the Google Sheet. Verify share access is active.</div>`;
-            }
-        }
-
-        function launchLecture(title, category, synopsis) {
-            const url = `documentary-view.html?title=${encodeURIComponent(title)}&category=${encodeURIComponent(category)}&synopsis=${encodeURIComponent(synopsis)}`;
-            window.location.href = url;
-        }
-
-        window.addEventListener('DOMContentLoaded', fetchLiveLedger);
-    </script>
-</body>
-</html>
+        function readCellSafe(cellObj) {
+            if (!cellObj) return '';
+            if (cellObj.f !== undefined && cellObj.f !== null) return String(cellObj.f).trim();
+if (cellObj.v !== undefined && cellObj.v !== null) return String(cellObj.v).trim();
+return '';
+}
+async function fetchLiveLedger() {
+try {
+const response = await fetch(ACCESS_URL);
+const text = await response.text();
+const jsonString = text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1);
+const dataJSON = JSON.parse(jsonString);
+const rows = dataJSON.table.rows;
+const scheduleContainer = document.getElementById('scheduleContainer');
+scheduleContainer.innerHTML = '';
+let dataByMonth = {};
+rows.forEach((row, index) => {
+if (index === 0) return;
+const cells = row.c;
+if (!cells || !cells) return;
+const dateCell = cells;
+let rawDate = readCellSafe(dateCell);
+const title = readCellSafe(cells);
+const description = readCellSafe(cells) || 'No detailed summary cataloged for this entry.';
+const topic = readCellSafe(cells) || 'Unassigned Curricular Topic';
+const category = readCellSafe(cells) || 'General Education';
+if (!title || !rawDate) return;
+let monthGroup = "Upcoming Additions";
+if (dateCell.v && String(dateCell.v).startsWith('Date(')) {
+const dateParts = dateCell.v.replace('Date(', '').replace(')', '').split(',');
+const year = parseInt(dateParts);
+const month = parseInt(dateParts);
+if (month === 10) monthGroup = "November " + year;
+if (month === 11) monthGroup = "December " + year;
+if (month === 0) monthGroup = "January " + year;
+} else {
+if (rawDate.startsWith('11') || rawDate.startsWith('11/')) {
+monthGroup = "November 2026";
+} else if (rawDate.startsWith('12') || rawDate.startsWith('12/')) {
+monthGroup = "December 2026";
+} else if (rawDate.startsWith('01') || rawDate.startsWith('1/') || rawDate.startsWith('01/')) {
+monthGroup = "January 2027";
+}
+}
+if (!dataByMonth[monthGroup]) {
+dataByMonth[monthGroup] = [];
+}
+dataByMonth[monthGroup].push({
+dateLabel: rawDate,
+title: title,
+desc: description,
+category: category,
+topic: topic
+});
+});
+for (const [monthName, items] of Object.entries(dataByMonth)) {
+const monthBlock = document.createElement('div');
+monthBlock.className = 'month-block';
+const mHeader = document.createElement('div');
+mHeader.className = 'month-header';
+mHeader.textContent = monthName;
+monthBlock.appendChild(mHeader);
+const grid = document.createElement('div');
+grid.className = 'calendar-grid';
+items.forEach(item => {
+const cell = document.createElement('div');
+cell.className = 'calendar-cell';
+cell.setAttribute('onclick', launchLecture(${JSON.stringify(item.title)}, ${JSON.stringify(item.category)}, ${JSON.stringify(item.desc)}));
+cell.innerHTML = <div class="cell-date">${item.dateLabel}</div> <div class="cell-title">${item.title}</div> <div class="cell-topic">${item.topic}</div> <div class="cell-desc">${item.desc.substring(0, 115)}${item.desc.length > 115 ? '...' : ''}</div>;
+grid.appendChild(cell);
+});
+monthBlock.appendChild(grid);
+scheduleContainer.appendChild(monthBlock);
+}
+} catch (err) {
+console.error("Ledger pipeline parsing anomaly: ", err);
+document.getElementById('scheduleContainer').innerHTML =
+<div class="loading-notice" style="color:#b33e2b;">Failed to sync data from the Google Sheet. Verify share access is active.</div>;
+}
+}
+function launchLecture(title, category, synopsis) {
+const currentParams = new URLSearchParams(window.location.search);
+let viewAppend = '';
+if (currentParams.get('view') === 'public') {
+viewAppend = '&view=public';
+}
+const url = documentary-view.html?title=${encodeURIComponent(title)}&category=${encodeURIComponent(category)}&synopsis=${encodeURIComponent(synopsis)}${viewAppend};
+window.location.href = url;
+}
+window.addEventListener('DOMContentLoaded', fetchLiveLedger);
