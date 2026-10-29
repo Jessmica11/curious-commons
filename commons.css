@@ -65,3 +65,4 @@ button:hover{filter:brightness(1.15)}
 .badge{display:inline-block;margin-top:.4rem;background:var(--brass);color:#fff;font:700 .75rem var(--sans);letter-spacing:.08em;text-transform:uppercase;padding:.15rem .7rem;border-radius:999px}
 .badge.soon{background:var(--green2)}
 .wall-sec{margin-top:1.75rem}
+.host details{margin:.5rem 0 1rem}

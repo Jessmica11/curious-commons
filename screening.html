@@ -8,6 +8,37 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=IM+Fell+English:ital@0;1&family=Inter:wght@400;600&family=Special+Elite&display=swap">
 <link rel="stylesheet" href="commons.css">
+<style>
+#notes{min-height:240px;max-height:540px;overflow:auto;background:#fffdf6;border:2px solid var(--muted);border-radius:3px;padding:1rem 1.15rem;font:1.1rem/1.65 var(--serif);color:var(--ink)}
+#notes:focus{outline:3px solid #0b57d0;outline-offset:2px}
+#notes:empty::before{content:attr(data-placeholder);color:var(--muted)}
+#notes h3{font:700 1.1rem var(--serif);text-transform:none;letter-spacing:0;margin:.8rem 0 .2rem;color:var(--ink)}
+#notes blockquote{border-left:4px solid var(--brass);margin:.6rem 0;padding:.1rem .9rem;font-style:italic}
+#notes ul,#notes ol{margin:.4rem 0 .4rem 1.5rem}
+#notes p,#notes div{margin:0 0 .5rem}
+.tools{display:flex;flex-wrap:wrap;gap:.35rem;margin:.75rem 0}
+.tools button{min-width:44px;margin:0;padding:.3rem .65rem;background:var(--card);color:var(--ink);border:2px solid var(--brass);font-size:.95rem}
+.tools button[aria-pressed="true"]{background:var(--brass);color:#fff}
+.tools button:hover{filter:none;background:#e2d5b4}
+.tools button[aria-pressed="true"]:hover{background:var(--brass)}
+#linkForm{display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .75rem;padding:.6rem;background:var(--card);border:1px solid var(--brass)}
+#linkForm[hidden]{display:none}
+#linkForm label{flex-basis:100%;margin:0}
+#linkForm input{flex:1 1 180px}
+#linkForm button{margin:0}
+.savebar{font-size:.9rem;color:var(--muted);margin:.4rem 0 .2rem}
+.exports{display:flex;flex-wrap:wrap;gap:.4rem}
+.exports button{margin:0}
+#printArea{display:none}
+@media print{
+  body{background:#fff!important;padding:0!important}
+  .wrap,.skip{display:none!important}
+  #printArea{display:block!important;color:#000;font:12pt/1.5 Georgia,serif}
+  #printArea h1{font:700 20pt Georgia,serif;margin:0 0 .2em}
+  #printArea h2{font:700 14pt Georgia,serif;margin:1em 0 .3em}
+  #printArea a{color:#000}
+}
+</style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -15,7 +46,7 @@
 <a class="back" href="index.html">← Gallery wall</a>
 <header>
   <img src="profile.png" alt="Portrait of a woman in a white gown seated before towering stacks of old books">
-  <div><h1>The Curious Commons</h1><p class="tag">Learning new things separately, but together.</p></div>
+  <div><h1>The Curious Commons</h1><p class="tag">Commoners gaining power through knowledge</p></div>
 </header>
 
 <main id="main" class="grid">
@@ -28,7 +59,7 @@
 
   <section class="card" aria-labelledby="watchh">
     <h2 id="watchh">Where To Watch</h2>
-    <div id="watch"><p class="none">Pick a screening from Coming Up.</p></div>
+    <div id="watch"><p class="none">Loading where to watch…</p></div>
   </section>
 
   </div>
@@ -48,34 +79,71 @@
 
   <section class="card" aria-labelledby="noteh">
     <h2 id="noteh">My Notes</h2>
-    <p class="meta">Saved only in this browser. Nobody else can see them.</p>
-    <label for="notes" class="sr">My notes for this screening</label>
-    <textarea id="notes" placeholder="Arguments, questions, things to look up…"></textarea>
-    <button id="bStamp" class="alt" type="button">Stamp the time</button><button id="bTake" type="button">Take it home</button>
+    <p class="meta">Saved automatically in this browser only. Download a copy to keep it.</p>
+    <div class="tools" id="tools" role="group" aria-label="Text formatting">
+      <button type="button" data-cmd="bold" aria-pressed="false" aria-label="Bold" title="Bold (Ctrl+B)"><b>B</b></button>
+      <button type="button" data-cmd="italic" aria-pressed="false" aria-label="Italic" title="Italic (Ctrl+I)"><i>I</i></button>
+      <button type="button" data-cmd="underline" aria-pressed="false" aria-label="Underline" title="Underline (Ctrl+U)"><u>U</u></button>
+      <button type="button" data-cmd="heading" aria-pressed="false" aria-label="Heading">Heading</button>
+      <button type="button" data-cmd="ul" aria-pressed="false" aria-label="Bulleted list">&bull; List</button>
+      <button type="button" data-cmd="ol" aria-pressed="false" aria-label="Numbered list">1. List</button>
+      <button type="button" data-cmd="quote" aria-pressed="false" aria-label="Quote">Quote</button>
+      <button type="button" data-cmd="link" aria-label="Add a link">Link</button>
+      <button type="button" data-cmd="time" aria-label="Insert the watch-party clock time">Time</button>
+    </div>
+    <form id="linkForm" hidden>
+      <label for="linkUrl">Link address</label>
+      <input id="linkUrl" type="url" placeholder="https://" required>
+      <button type="submit">Add link</button><button type="button" id="linkCancel" class="alt">Cancel</button>
+    </form>
+    <div id="notes" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="noteh" spellcheck="true" data-placeholder="Arguments, questions, things to look up&hellip;"></div>
+    <p class="savebar" id="saveState">Saved</p>
+    <h3>Take it home</h3>
+    <div class="exports">
+      <button type="button" id="exWord">Word (.doc)</button>
+      <button type="button" id="exPdf" class="alt">Print / PDF</button>
+      <button type="button" id="exTxt" class="alt">Plain text</button>
+    </div>
   </section>
  </div>
 </main>
 
 <section class="card host" id="hostpanel" hidden aria-labelledby="hosth">
   <h2 id="hosth">Host Desk (only you see this)</h2>
+  <p id="hostMsg" class="meta" role="status"></p>
+  <details id="connect">
+    <summary>Connect to your sheet (one-time setup)</summary>
+    <label for="cfgUrl">Apps Script web app address</label>
+    <input id="cfgUrl" type="url" placeholder="https://script.google.com/macros/s/&hellip;/exec">
+    <label for="cfgKey">Password you set in the script</label>
+    <input id="cfgKey" type="password" autocomplete="off">
+    <button id="bSaveCfg" type="button">Save in this browser</button>
+  </details>
+  <p><button id="bTestCfg" type="button" class="alt">Test connection to my sheet</button></p>
   <div class="grid">
    <div>
     <h3>Clock</h3>
-    <label for="setT">Set clock to (hh:mm:ss, optional)</label>
+    <label for="setT">Start at (hh:mm:ss, optional)</label>
     <input id="setT" placeholder="00:32:10" inputmode="numeric">
-    <button id="bPlay">Play</button><button id="bPause" class="alt">Pause</button><button id="bReset" class="alt">Reset</button>
-    <p>Paste this into cell <b>A2</b> of the <b>Live</b> tab so viewers sync:</p>
-    <div class="out" id="clockOut">—</div><button id="cpClock" class="alt">Copy</button>
+    <button id="bPlay" type="button">Play</button><button id="bPause" class="alt" type="button">Pause</button><button id="bReset" class="alt" type="button">Reset</button>
+    <div id="manualClock">
+      <p>Not connected: paste this into cell <b>A2</b> of the <b>Live</b> tab so viewers sync:</p>
+      <div class="out" id="clockOut">&mdash;</div><button id="cpClock" class="alt" type="button">Copy</button>
+    </div>
     <h3>Live screening</h3>
-    <p>Type the exact title into <b>B2</b> of the <b>Live</b> tab. Leave blank to follow the schedule dates.</p>
+    <p>The date picks the film automatically. Use these to override it.</p>
+    <button id="bGoLive" type="button">Make this film Now Showing</button><button id="bUnlive" class="alt" type="button">Back to the schedule</button>
+    <p id="manualLive">Not connected: type the exact title into <b>B2</b> of the <b>Live</b> tab instead.</p>
    </div>
    <div>
     <h3>Pin a link</h3>
     <label for="pinNote">What is it?</label><input id="pinNote">
     <label for="pinUrl">Link</label><input id="pinUrl" type="url" placeholder="https://">
-    <button id="bPin">Pin it</button>
-    <p>Copy the row, then paste into <b>A:D</b> of the <b>Pins</b> tab so viewers see it:</p>
-    <div class="out" id="pinOut">—</div><button id="cpPin" class="alt">Copy row</button>
+    <button id="bPin" type="button">Pin it</button>
+    <div id="manualPin">
+      <p>Not connected: copy the row, then paste it into <b>A:D</b> of the <b>Pins</b> tab:</p>
+      <div class="out" id="pinOut">&mdash;</div><button id="cpPin" class="alt" type="button">Copy row</button>
+    </div>
    </div>
   </div>
 </section>
@@ -85,6 +153,7 @@
 </footer>
 </div>
 
+<div id="printArea" aria-hidden="true"></div>
 <script src="commons.js"></script>
 <script>
 window.onEnriched=r=>{if(r===S.cur)renderDoc()};
@@ -106,11 +175,11 @@ function renderDoc(){
   [['Free',r.free,'Anyone can watch these at no cost.'],['Open Source (library)',r.open,'Free with a library card, e.g. Kanopy or Hoopla through your library.'],['Streaming',r.stream,'Subscription or rental.']].forEach(([n,a,h])=>{
     w.append(el('h3',n));w.append(el('p',h,'meta'));
     if(a.length){const d=el('div',null,'plat');a.forEach(x=>d.append(el('span',x,'chip')));w.append(d)}
-    else w.append(el('p','Not listed for this title yet.','none'));
+    else w.append(el('p',r.status?'Not listed for this title yet.':'Looking this up…','none'));
   });
-  if(r.api&&Object.keys(r.api).length)w.append(el('p','Some availability here comes from JustWatch via TMDB (US). Anything typed in the sheet takes priority.','meta'));
+  w.append(el('p','Where-to-watch information comes from JustWatch, via TMDB (US availability).','meta'));
   $('status').textContent='Showing '+r.title;
-  if(S.nkey!==nk(r)){S.nkey=nk(r);$('notes').value=localStorage.getItem(nk(r))||''}
+  if(S.nkey!==nk(r)){S.nkey=nk(r);loadNotes(r)}
   renderPins();
 }
 
@@ -140,7 +209,7 @@ function renderPins(){
     li.append(el('span',p.time||'—','stamp'),r);
     if(safe(p.url)){const a=el('a',p.note||p.url);a.href=p.url;a.target='_blank';a.rel='noopener noreferrer';r.append(a)}
     else r.append(document.createTextNode(p.note));
-    if(p.local)r.append(el('small','on your desk only until pasted to the sheet','loc'));
+    if(p.local)r.append(el('small','not on the sheet yet','loc'));
     ol.append(li)});
   for(let i=Math.max(all.length,1);i<8;i++){const li=document.createElement('li');li.setAttribute('aria-hidden','true');li.append(el('span',''),el('span',''));ol.append(li)}
   ol.scrollTop=ol.scrollHeight}
@@ -148,10 +217,10 @@ function renderPins(){
 /* --- polling --- */
 async function refreshLive(force){
   if(document.hidden&&!force)return;
-  const[lv,pn]=await Promise.allSettled([load(LIVE_TAB),load(PINS_TAB)]);
+  const[lv,pn]=await Promise.allSettled([load(LIVE_TAB,/clock|now playing/i),load(PINS_TAB,/note/i)]);
   if(lv.status==='fulfilled'){
     const r=lv.value.rows[0]&&lv.value.rows[0].c||[],title=cell(r[1]);
-    if(title!==S.liveTitle){S.liveTitle=title;S.manualPick=false}
+    if(Date.now()>(S.hold||0)&&title!==S.liveTitle){S.liveTitle=title;S.manualPick=false}
     if(!S.override)S.clock=parseClock(cell(r[0]));
     if(S.rows.length&&!S.manualPick){const n=autoPick();if(n!==S.cur){S.cur=n;renderDoc();enrich(n)}}
   }
@@ -175,32 +244,160 @@ async function init(){
 /* --- host desk --- */
 if(HOST){
   $('hostpanel').hidden=false;
+  const cfg=()=>{try{return JSON.parse(localStorage.getItem('cc_host')||'null')}catch(e){return null}};
+  const connected=()=>{const c=cfg();return !!(c&&c.url&&c.key)};
+  const msg=t=>{$('hostMsg').textContent=t};
+  function syncManual(){['manualClock','manualLive','manualPin'].forEach(id=>$(id).hidden=connected());$('connect').open=!connected()}
+  const VIEW=' Viewers see it within about 20 seconds.';
+  async function send(payload,ok){
+    if(!connected()){msg('Not connected to the sheet yet: use the copy boxes, or connect above.');return false}
+    const c=cfg();
+    let reply;
+    try{
+      const res=await fetch(c.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...payload,key:c.key})});
+      reply=(await res.text()).trim();
+    }catch(e){
+      // the request probably went through but this browser was not allowed to read Google's answer: do NOT resend (it could double a pin)
+      msg('Sent, but this browser could not read the reply. Check your Live or Pins tab. If nothing changes, the address must end in /exec and access must be set to Anyone.');return null}
+    if(reply==='ok'){msg(ok);return true}
+    if(reply==='bad password'){msg('The sheet connection rejected the password. Re-enter it under "Connect to your sheet" and check it matches the first line of your script.');return false}
+    if(/^<|sign in|accounts\.google/i.test(reply)){msg('Google asked for a sign-in instead of running the script. In Deploy, set "Who has access" to Anyone, then make a new deployment.');return false}
+    msg('The sheet connection answered: '+reply.slice(0,140));return false
+  }
+  const c0=cfg();if(c0)$('cfgUrl').value=c0.url||'';
+  syncManual();
+  $('bSaveCfg').onclick=()=>{
+    const url=$('cfgUrl').value.trim(),key=$('cfgKey').value;
+    if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url)||!key){msg('Enter the web app address (it starts with https://script.google.com/ and ends with /exec) and your password.');return}
+    localStorage.setItem('cc_host',JSON.stringify({url,key}));$('cfgKey').value='';syncManual();msg('Saved in this browser. Press Test connection.')};
+  $('bTestCfg').onclick=()=>send({action:'ping'},'Connection works. The password is correct.');
+
   const parseHMS=v=>{const p=v.trim().split(':').map(Number);if(!v.trim()||p.some(isNaN))return null;return p.reduce((a,n)=>a*60+n,0)};
-  $('bPlay').onclick=()=>{const t=parseHMS($('setT').value),s=t!=null?t:(secs()||0);S.override=true;S.clock={running:true,base:s,at:Date.now()};$('setT').value='';tick()};
-  $('bPause').onclick=()=>{const s=secs();if(s==null)return;S.override=true;S.clock={running:false,base:s,at:Date.now()};tick()};
-  $('bReset').onclick=()=>{S.override=true;S.clock={running:false,base:0,at:Date.now()};tick()};
-  const copy=(id,btn)=>$(btn).onclick=async()=>{try{await navigator.clipboard.writeText($(id).dataset.v||$(id).textContent);$('status').textContent='Copied'}catch(e){}};
+  const pushClock=ok=>{tick();send({action:'clock',clock:clockStr()},ok+VIEW)};
+  $('bPlay').onclick=()=>{const t=parseHMS($('setT').value),s=t!=null?t:(secs()||0);S.override=true;S.clock={running:true,base:s,at:Date.now()};$('setT').value='';pushClock('Clock started.')};
+  $('bPause').onclick=()=>{const s=secs();if(s==null)return;S.override=true;S.clock={running:false,base:s,at:Date.now()};pushClock('Clock paused.')};
+  $('bReset').onclick=()=>{S.override=true;S.clock={running:false,base:0,at:Date.now()};pushClock('Clock reset.')};
+
+  $('bGoLive').onclick=()=>{if(!S.cur)return;S.liveTitle=S.cur.title;S.manualPick=false;S.hold=Date.now()+30000;renderDoc();send({action:'live',title:S.cur.title},'Now Showing set.'+VIEW)};
+  $('bUnlive').onclick=()=>{S.liveTitle='';S.manualPick=false;S.hold=Date.now()+30000;const n=autoPick();if(n){S.cur=n;renderDoc();enrich(n)}send({action:'live',title:''},'Back to the schedule.'+VIEW)};
+
+  const copy=(id,btn)=>$(btn).onclick=async()=>{try{await navigator.clipboard.writeText($(id).dataset.v||$(id).textContent);msg('Copied.')}catch(e){}};
   copy('clockOut','cpClock');copy('pinOut','cpPin');
   $('bPin').onclick=()=>{
     const note=$('pinNote').value.trim(),url=$('pinUrl').value.trim();if(!note&&!url)return;
+    if(url&&!safe(url)){msg('The link must start with http:// or https://');return}
     const s=secs(),p={time:s==null?'':fmt(s),note,url,doc:S.cur?S.cur.title:''};
     localStorage.setItem('cc_pins',JSON.stringify([...localPins(),p]));
     $('pinOut').dataset.v=[p.time,note,url,p.doc].join('\t');$('pinOut').textContent=[p.time,note,url,p.doc].join('  |  ');
-    $('pinNote').value='';$('pinUrl').value='';renderPins()};
+    $('pinNote').value='';$('pinUrl').value='';renderPins();
+    send({action:'pin',time:p.time,note,url,doc:p.doc},'Pinned.'+VIEW)};
 }
-$('notes').addEventListener('input',e=>S.cur&&localStorage.setItem(nk(S.cur),e.target.value));
-$('bStamp').onclick=()=>{
-  const s=secs();if(s==null){$('status').textContent='The clock has not started yet.';return}
-  const t=$('notes'),pos=t.selectionStart,before=t.value.slice(0,pos),after=t.value.slice(t.selectionEnd);
-  const ins=(before&&!before.endsWith('\n')?'\n':'')+'['+fmt(s)+'] ';
-  t.value=before+ins+after;const np=(before+ins).length;t.focus();t.setSelectionRange(np,np);t.dispatchEvent(new Event('input'))};
-$('bTake').onclick=()=>{
-  const r=S.cur;if(!r)return;
-  const L=[r.title,[r.dateLabel,r.year,r.dur].filter(Boolean).join(' · '),'','MY NOTES','',$('notes').value||'(none)','','LINKS FROM THE CHECKOUT CARD',''];
-  const mine=S.pins.filter(forCur);mine.forEach(p=>L.push((p.time?'['+p.time+'] ':'')+p.note+(p.url?' - '+p.url:'')));
-  if(!mine.length)L.push('(none)');
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([L.join('\n')],{type:'text/plain'}));
-  a.download=r.title.replace(/[^a-z0-9]+/gi,'-').toLowerCase()+'-notes.txt';a.click();URL.revokeObjectURL(a.href)};
+/* --- notes editor: rich text, autosaves in this browser --- */
+const ed=$('notes'),rk=r=>'cc_rich_'+r.title+'|'+r.dateLabel;
+const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const OK=new Set(['B','STRONG','I','EM','U','H3','UL','OL','LI','P','DIV','BR','BLOCKQUOTE','A']);
+function clean(html){ // allow-list sanitiser: only simple formatting and http(s) links survive
+  const doc=new DOMParser().parseFromString('<body>'+html+'</body>','text/html');
+  (function walk(n){
+    [...n.childNodes].forEach(ch=>{
+      if(ch.nodeType===3)return;
+      if(ch.nodeType!==1||/^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED|TEMPLATE|NOSCRIPT)$/.test(ch.tagName)){ch.remove();return}
+      walk(ch);
+      if(!OK.has(ch.tagName)){ch.replaceWith(...ch.childNodes);return}
+      [...ch.attributes].forEach(a=>{if(!(ch.tagName==='A'&&a.name==='href'&&/^https?:\/\//i.test(a.value)))ch.removeAttribute(a.name)});
+      if(ch.tagName==='A'){if(ch.getAttribute('href')){ch.target='_blank';ch.rel='noopener noreferrer'}else ch.replaceWith(...ch.childNodes)}
+    })})(doc.body);
+  return doc.body.innerHTML}
+
+let saved=null,timer=null,edFor=null;
+const note=t=>{$('status').textContent=t};
+const keep=()=>{const s=getSelection();if(s.rangeCount&&ed.contains(s.anchorNode))saved=s.getRangeAt(0).cloneRange()};
+function restore(){
+  ed.focus();const s=getSelection();
+  if(saved){s.removeAllRanges();s.addRange(saved)}
+  else{const r=document.createRange();r.selectNodeContents(ed);r.collapse(false);s.removeAllRanges();s.addRange(r)}}
+const isEmpty=()=>!ed.textContent.trim()&&!ed.querySelector('li,a,blockquote');
+const words=()=>{const t=ed.textContent.trim();return t?t.split(/\s+/).length:0};
+const setState=t=>{$('saveState').textContent=t+' · '+words()+' words'};
+function save(){
+  if(!edFor)return;
+  try{localStorage.setItem(rk(edFor),ed.innerHTML);setState('Saved')}catch(e){setState('Could not save (is this a private window?)')}}
+function onEdit(){if(isEmpty())ed.innerHTML='';setState('Saving…');clearTimeout(timer);timer=setTimeout(()=>{timer=null;save()},400)}
+function loadNotes(r){
+  if(timer){clearTimeout(timer);timer=null;save()}   // never lose the last few keystrokes when switching films
+  let h='';
+  try{
+    h=localStorage.getItem(rk(r));
+    if(h==null){const old=localStorage.getItem(nk(r));h=old?old.split('\n').map(l=>'<div>'+(esc(l)||'<br>')+'</div>').join(''):''}
+  }catch(e){h=''}
+  ed.innerHTML=clean(h);edFor=r;saved=null;setState('Saved')}
+window.addEventListener('pagehide',()=>{if(timer){clearTimeout(timer);timer=null;save()}});
+
+const BLOCK=()=>String(document.queryCommandValue('formatBlock')).toLowerCase().replace(/[<>]/g,'');
+function tools(){
+  const on=(c,v)=>{const b=document.querySelector('[data-cmd="'+c+'"]');if(b)b.setAttribute('aria-pressed',String(!!v))};
+  try{
+    on('bold',document.queryCommandState('bold'));on('italic',document.queryCommandState('italic'));on('underline',document.queryCommandState('underline'));
+    on('ul',document.queryCommandState('insertUnorderedList'));on('ol',document.queryCommandState('insertOrderedList'));
+    on('heading',BLOCK()==='h3');on('quote',BLOCK()==='blockquote')
+  }catch(e){}}
+function exec(cmd,val){restore();document.execCommand(cmd,false,val);keep();onEdit();tools()}
+
+$('tools').addEventListener('mousedown',e=>{if(e.target.closest('button'))e.preventDefault()});   // keep the text selection while clicking buttons
+$('tools').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-cmd]');if(!b)return;
+  const c=b.dataset.cmd;
+  if(c==='bold'||c==='italic'||c==='underline')exec(c);
+  else if(c==='ul')exec('insertUnorderedList');
+  else if(c==='ol')exec('insertOrderedList');
+  else if(c==='heading'){restore();exec('formatBlock',BLOCK()==='h3'?'p':'h3')}
+  else if(c==='quote'){restore();exec('formatBlock',BLOCK()==='blockquote'?'p':'blockquote')}
+  else if(c==='link'){keep();$('linkForm').hidden=false;$('linkUrl').focus()}
+  else if(c==='time'){const s=secs();if(s==null){note('The clock has not started yet.');return}exec('insertHTML','<b>['+fmt(s)+']</b>&nbsp;')}
+});
+$('linkUrl').addEventListener('input',()=>$('linkUrl').setCustomValidity(''));
+$('linkForm').addEventListener('submit',e=>{
+  e.preventDefault();const u=$('linkUrl').value.trim();
+  if(!safe(u)){$('linkUrl').setCustomValidity('Use a full address starting with https://');$('linkUrl').reportValidity();return}
+  restore();
+  if(getSelection().isCollapsed)document.execCommand('insertHTML',false,'<a href="'+esc(u)+'">'+esc(u)+'</a>&nbsp;');
+  else document.execCommand('createLink',false,u);
+  $('linkForm').hidden=true;$('linkUrl').value='';keep();onEdit()});
+$('linkCancel').onclick=()=>{$('linkForm').hidden=true;restore()};
+
+ed.addEventListener('input',onEdit);
+ed.addEventListener('keyup',keep);ed.addEventListener('mouseup',keep);ed.addEventListener('blur',keep);
+ed.addEventListener('paste',e=>{e.preventDefault();document.execCommand('insertText',false,(e.clipboardData||window.clipboardData).getData('text/plain'))});   // paste as plain text: no stray fonts or colours
+document.addEventListener('selectionchange',()=>{if(document.activeElement===ed){keep();tools()}});
+try{document.execCommand('defaultParagraphSeparator',false,'div')}catch(e){}
+
+/* --- take it home --- */
+const slug=t=>t.replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()||'notes';
+function parts(){const r=S.cur;if(!r)return null;if(timer){clearTimeout(timer);timer=null;save()}
+  return{r,meta:[r.dateLabel,r.year,r.dur].filter(Boolean).join(' · '),html:isEmpty()?'':clean(ed.innerHTML),pins:S.pins.filter(forCur)}}
+function download(name,type,text){
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;
+  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+const pinsHtml=pins=>pins.length?'<ul>'+pins.map(p=>'<li>'+(p.time?'['+esc(p.time)+'] ':'')+(safe(p.url)?'<a href="'+esc(p.url)+'">'+esc(p.note||p.url)+'</a>':esc(p.note))+'</li>').join('')+'</ul>':'<p>(none)</p>';
+const docHtml=p=>'<h1>'+esc(p.r.title)+'</h1><p><i>'+esc(p.meta)+'</i></p><h2>My notes</h2>'+(p.html||'<p>(none)</p>')+'<h2>Commoner resources</h2>'+pinsHtml(p.pins);
+function toText(html){
+  const t=document.createElement('div');t.innerHTML=html;
+  t.querySelectorAll('a').forEach(a=>a.append(' ('+a.href+')'));
+  t.querySelectorAll('li').forEach(li=>li.prepend('• '));
+  t.querySelectorAll('div,p,ul,ol,h3,blockquote').forEach(b=>{const q=b.previousSibling;if(q&&(q.nodeType===3||/^(B|I|U|A|STRONG|EM)$/.test(q.tagName)))b.before('\n')});
+  t.querySelectorAll('br').forEach(b=>b.replaceWith('\n'));
+  t.querySelectorAll('p,div,h3,li,blockquote').forEach(b=>b.append('\n'));
+  return t.textContent.replace(/\n{3,}/g,'\n\n').trim()}
+$('exWord').onclick=()=>{const p=parts();if(!p)return;
+  download(slug(p.r.title)+'-notes.doc','application/msword','<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>'+esc(p.r.title)+'</title><style>body{font-family:Georgia,serif;font-size:12pt;line-height:1.5}h1{font-size:20pt}h2{font-size:14pt}h3{font-size:12pt}blockquote{margin-left:24pt;font-style:italic}</style></head><body>'+docHtml(p)+'</body></html>');
+  note('Word file downloaded.')};
+$('exTxt').onclick=()=>{const p=parts();if(!p)return;
+  const L=[p.r.title,p.meta,'','MY NOTES','',p.html?toText(p.html):'(none)','','COMMONER RESOURCES',''];
+  p.pins.forEach(x=>L.push((x.time?'['+x.time+'] ':'')+x.note+(x.url?' - '+x.url:'')));
+  if(!p.pins.length)L.push('(none)');
+  download(slug(p.r.title)+'-notes.txt','text/plain',L.join('\n'));note('Text file downloaded.')};
+$('exPdf').onclick=()=>{const p=parts();if(!p)return;$('printArea').innerHTML=docHtml(p);window.print()};
+window.addEventListener('afterprint',()=>{$('printArea').textContent=''});
 init();
 </script>
 </body>

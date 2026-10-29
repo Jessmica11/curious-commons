@@ -22,7 +22,7 @@
 <div class="wrap">
 <header>
   <img src="profile.png" alt="Portrait of a woman in a white gown seated before towering stacks of old books">
-  <div><h1>The Curious Commons</h1><p class="tag">Learning new things separately, but together.</p></div>
+  <div><h1>The Curious Commons</h1><p class="tag">Commoners gaining power through knowledge</p></div>
 </header>
 <main id="main">
   <section class="card" aria-labelledby="wallh">
@@ -69,7 +69,7 @@ function render(){
   if(next&&when(next)!=='past'){const a=el('a',(when(next)==='now'?'Now showing: ':'Coming soon: ')+next.title+(when(next)==='soon'&&next.dateLabel?' \u00b7 '+next.dateLabel:'')+' \u2192');a.href='screening.html?show='+encodeURIComponent(next.title);t.append(a)}
 }
 (async()=>{
-  const lv=load(LIVE_TAB).then(t=>{const r=t.rows[0]&&t.rows[0].c||[];S.liveTitle=cell(r[1])}).catch(()=>{});
+  const lv=load(LIVE_TAB,/clock|now playing/i).then(t=>{const r=t.rows[0]&&t.rows[0].c||[];S.liveTitle=cell(r[1])}).catch(()=>{});
   try{S.rows=parseSchedule(await load(SCHEDULE_TAB))}
   catch(e){const p=el('p','Could not load the schedule ('+e.message+'). Check the sheet is shared as “Anyone with the link: Viewer”, then reload.','err');p.setAttribute('role','alert');$('tonight').append(p);return}
   await lv;render()
