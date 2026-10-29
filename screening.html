@@ -31,7 +31,29 @@
 .exports button{margin:0}
 #printArea{display:none}
 /* the last card in each column stretches, so both columns end on the same line */
-main .stack{align-content:stretch;grid-template-rows:auto 1fr}
+main .stack{display:flex;flex-direction:column}
+main .stack>.card:last-child{flex:1}
+/* the clock is the most important card for latecomers: first on the page, big, and it follows you as you scroll */
+.clock{position:sticky;top:0;z-index:20;margin-bottom:1.25rem;padding:.7rem 1.25rem;display:grid;grid-template-columns:auto 1fr;align-items:center;column-gap:2rem;text-align:left;box-shadow:0 6px 18px rgba(0,0,0,.5)}
+.clock h2{grid-column:1;margin:0 0 .1rem;border:0;padding:0;font-size:.95rem}
+.clock #time{grid-column:1;font-size:clamp(2.6rem,9vw,4.5rem);line-height:1.05}
+.clock #state{grid-column:2;grid-row:1;align-self:end;font-size:1.1rem}
+.clock p.how{grid-column:2;grid-row:2;margin:.2rem 0 0;font-size:1rem}
+.clock.compact{padding-top:.4rem;padding-bottom:.4rem}
+.clock.compact p.how{display:none}
+.clock.compact #time{font-size:clamp(2rem,7vw,2.8rem)}
+@media(max-width:820px){
+  .clock{grid-template-columns:1fr;text-align:center;padding:.6rem .9rem}
+  .clock h2,.clock #time,.clock #state,.clock p.how{grid-column:1;grid-row:auto;text-align:center}
+  .clock #state{font-size:1rem}
+  .clock p.how{font-size:.9rem}
+}
+.kick[hidden]{display:none}
+.kick{display:flex;align-items:center;gap:.6rem;font:700 .95rem Cinzel,serif;letter-spacing:.14em;text-transform:uppercase;color:var(--brassl);margin:0 0 .35rem}
+.cameo{width:40px;height:40px;border-radius:50%;flex:none;background:url(profile.png) center 18%/cover;border:2px solid var(--brassl);box-shadow:0 0 0 1px #6b4a10}
+header.film .frame{width:150px;flex:none}
+header.film h1{font-size:clamp(1.6rem,4.5vw,2.6rem);line-height:1.15}
+@media(max-width:820px){header.film .frame{width:112px}.cameo{width:32px;height:32px}.kick{font-size:.8rem}}
 .notes-wide{grid-column:1/-1}
 .notes-wide #notes{min-height:320px}
 @media print{
@@ -48,11 +70,17 @@ main .stack{align-content:stretch;grid-template-rows:auto 1fr}
 <a class="skip" href="#main">Skip to content</a>
 <div class="wrap">
 <a class="back" href="index.html">← Gallery wall</a>
-<header>
+<header id="hdr">
   <img src="profile.png" alt="Portrait of a woman in a white gown seated before towering stacks of old books">
-  <div><h1>The Curious Commons</h1><p class="tag">Commoners gaining power through knowledge</p></div>
+  <div><p class="kick" id="kick" hidden><span class="cameo" aria-hidden="true"></span>The Curious Commons</p><h1 id="h1">The Curious Commons</h1><p class="tag">Commoners gaining power through knowledge</p></div>
 </header>
 
+  <section class="card clock" aria-labelledby="clockh">
+    <h2 id="clockh">Watch-Party Clock</h2>
+    <div id="time" role="timer" aria-live="off">--:--:--</div>
+    <div id="state">The host has not started the clock yet</div>
+    <p class="how">This is where we are in the documentary. Join any time: start your own copy and skip ahead to this timestamp to watch along with us.</p>
+  </section>
 <main id="main" class="grid">
  <div class="stack">
   <section class="card" aria-labelledby="nowh">
@@ -69,13 +97,6 @@ main .stack{align-content:stretch;grid-template-rows:auto 1fr}
   </div>
 
  <div class="stack">
-  <section class="card clock" aria-labelledby="clockh">
-    <h2 id="clockh">Watch-Party Clock</h2>
-    <div id="time" role="timer" aria-live="off">--:--:--</div>
-    <div id="state">The host has not started the clock yet</div>
-    <p class="how">This is where we are in the documentary. Join any time: start your own copy and skip ahead to this timestamp to watch along with us.</p>
-  </section>
-
   <section class="card" aria-labelledby="pinh">
     <h2 id="pinh">Pinned Links</h2>
     <div class="slip"><div class="slip-h">Commoner Resources</div><div class="slip-body"><div class="slip-sub" aria-hidden="true"><span>Time</span><span>Resource</span></div><ol class="pins" id="pins" tabindex="0" aria-label="Commoner resources, newest at the bottom"></ol></div></div>
@@ -94,7 +115,7 @@ main .stack{align-content:stretch;grid-template-rows:auto 1fr}
       <button type="button" data-cmd="ol" aria-pressed="false" aria-label="Numbered list">1. List</button>
       <button type="button" data-cmd="quote" aria-pressed="false" aria-label="Quote">Quote</button>
       <button type="button" data-cmd="link" aria-label="Add a link">Link</button>
-      <button type="button" data-cmd="time" aria-label="Insert the watch-party clock time">Time</button>
+      <button type="button" data-cmd="time" aria-label="Add time stamp: inserts the current watch-party clock time into your note" title="Adds the current clock time, like [00:42:15], to your note">Add Time Stamp</button>
     </div>
     <form id="linkForm" hidden>
       <label for="linkUrl">Link address</label>
@@ -165,8 +186,12 @@ const nk=r=>'cc_notes_'+r.title+'|'+r.dateLabel;
 function renderDoc(){
   const r=S.cur,box=$('doc');box.textContent='';if(!r)return;
   $('nowh').textContent={now:'Now Showing',soon:'Coming Soon',past:'Past Screening'}[when(r)];
-  if(isImg(r.img)){const i=new Image();i.className='cover poster';i.alt='Poster for '+r.title;i.src=r.img;i.onerror=()=>i.remove();box.append(i)}
-  box.append(el('p',r.title,'title'),el('p',[r.dateLabel,r.year,r.dur].filter(Boolean).join(' · '),'meta'));
+  // once a film is open, its framed poster takes the portrait's place; the channel stays named and pictured beside it
+  const hd=$('hdr'),film=isImg(r.img);hd.classList.toggle('film',film);$('kick').hidden=!film;$('h1').textContent=film?r.title:'The Curious Commons';
+  if(film){const f=cover(r);f.setAttribute('role','img');f.setAttribute('aria-label','Poster for '+r.title);hd.firstElementChild.replaceWith(f)}
+  else if(hd.firstElementChild.tagName!=='IMG'){const i=new Image();i.src='profile.png';i.alt='Portrait of a woman in a white gown seated before towering stacks of old books';hd.firstElementChild.replaceWith(i)}
+  document.title=r.title+' · The Curious Commons';
+  box.append(el('p',[r.dateLabel,r.year,r.dur].filter(Boolean).join(' · '),'meta'));
   if(r.cats)box.append(el('p',r.cats,'cats'));
   if(r.desc.length>320){
     const d=el('p',r.desc.slice(0,300).trim()+'…','desc'),dt=document.createElement('details'),sm=el('summary','Read the full description');
@@ -408,6 +433,9 @@ $('exTxt').onclick=()=>{const p=parts();if(!p)return;
 $('exPdf').onclick=()=>{const p=parts();if(!p)return;$('printArea').innerHTML=docHtml(p);window.print()};
 window.addEventListener('afterprint',()=>{$('printArea').textContent=''});
 init();
+(()=>{const c=document.querySelector('.clock');if(!c)return;let t=false;
+  const f=()=>{t=false;c.classList.toggle('compact',window.scrollY>140)};
+  addEventListener('scroll',()=>{if(!t){t=true;requestAnimationFrame(f)}},{passive:true});f()})();
 </script>
 </body>
 </html>
