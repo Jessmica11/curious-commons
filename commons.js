@@ -40,15 +40,17 @@ function parseSchedule(t){
 }
 const DAY=864e5;
 const midnight=()=>{const t=new Date();t.setHours(0,0,0,0);return t};
-// 'now' = this week's screening (its date was within the last 7 days, or today); 'soon' = still ahead; 'past' = older.
-// If the host types a title in Live!B2, that film is 'now' and the date rules only sort the others.
+// 'now' = the film the host started the clock on (Play), until Reset or "Back to the schedule".
+// Every other film: 'soon' if its date is today or later (or it has no date), 'past' if its date has gone by.
 function when(r){
-  const t=midnight(),lt=(S.liveTitle||'').toLowerCase();
-  if(lt&&S.rows.some(x=>x.title.toLowerCase()===lt))return r.title.toLowerCase()===lt?'now':(r.date&&r.date<t?'past':'soon');
-  if(!r.date)return'soon';
-  const d=Math.round((t-r.date)/DAY);
-  return d<0?'soon':d<7?'now':'past';
+  const lt=(S.liveTitle||'').toLowerCase();
+  if(lt&&r.title.toLowerCase()===lt)return'now';
+  return r.date&&r.date<midnight()?'past':'soon';
 }
+/* --- live state (clock, Now Showing, pins) from the Netlify function; used by every page --- */
+const LIVE_FN='/.netlify/functions/live';
+async function getLive(){
+  try{const r=await fetch(LIVE_FN,{cache:'no-store'});if(!r.ok)return null;const d=await r.json();return d&&!d.error?d:null}catch(e){return null}}
 function autoPick(){
   const want=new URLSearchParams(location.search).get('show');
   if(want){const m=S.rows.find(r=>r.title===want);if(m)return m}

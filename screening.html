@@ -258,9 +258,6 @@ function renderPins(){
   ol.scrollTop=ol.scrollHeight}
 
 /* --- polling --- */
-const LIVE_FN='/.netlify/functions/live';
-async function getLive(){
-  try{const r=await fetch(LIVE_FN,{cache:'no-store'});if(!r.ok)return null;const d=await r.json();return d&&!d.error?d:null}catch(e){return null}}
 // the clock and Now Showing come from the Netlify function; the sheet's Live tab is only a fallback. Pins come from both.
 async function refreshLive(force){
   if(document.hidden&&!force)return;
@@ -324,7 +321,9 @@ if(HOST){
     const r=S.cur;if(r){S.liveTitle=r.title;S.manualPick=false;S.hold=Date.now()+30000;renderDoc()}
     tick();send({action:'clock',clock:clockStr(),title:r?r.title:''},(r?'Clock started, and '+r.title+' is now Now Showing.':'Clock started.')+VIEW)};
   $('bPause').onclick=()=>{const s=secs();if(s==null)return;S.override=true;S.clock={running:false,base:s,at:Date.now()};pushClock('Clock paused.')};
-  $('bReset').onclick=()=>{S.override=true;S.clock={running:false,base:0,at:Date.now()};pushClock('Clock reset.')};
+  // Reset clears the clock and takes the film off Now Showing, so it goes back to Coming Soon (or Past)
+  $('bReset').onclick=()=>{S.override=true;S.clock=null;S.liveTitle='';S.manualPick=false;S.hold=Date.now()+30000;
+    if(S.cur)renderDoc();tick();send({action:'clock',clock:'',title:''},'Clock reset, and the film is off Now Showing.'+VIEW)};
 
   $('bGoLive').onclick=()=>{if(!S.cur)return;S.liveTitle=S.cur.title;S.manualPick=false;S.hold=Date.now()+30000;renderDoc();send({action:'live',title:S.cur.title},'Now Showing set.'+VIEW)};
   $('bUnlive').onclick=()=>{S.liveTitle='';S.manualPick=false;S.hold=Date.now()+30000;const n=autoPick();if(n){S.cur=n;renderDoc();enrich(n)}send({action:'live',title:''},'Back to the schedule.'+VIEW)};
