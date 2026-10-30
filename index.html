@@ -21,6 +21,19 @@
 .cap .m{display:block;font-size:.85rem;color:#3a2808;margin-bottom:.5rem}
 .cap .badge{margin-top:auto}
 #tonight{margin:.5rem 0 1.25rem;font-size:1.15rem}
+/* phones: two smaller framed posters per row, with lighter ornaments */
+@media(max-width:560px){
+.wall{grid-template-columns:repeat(2,minmax(0,1fr));gap:1.6rem .9rem}
+.wall li{padding:10px 2px 0}
+.wall .frame{padding:8px}
+.wall .frame::before{inset:-5px}
+.wall .frame::after{width:46px;height:18px;top:-11px}
+.wall .cap{margin:.75rem 0 0;padding:.45rem .35rem .5rem}
+.wall .cap .n{font-size:.98rem;letter-spacing:0}
+.wall .cap .d,.cap .m{font-size:.72rem}
+.cap .badge{font-size:.66rem;padding:.12rem .55rem;letter-spacing:.06em}
+#tonight{font-size:1.05rem}
+}
 </style>
 </head>
 <body>
