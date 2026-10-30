@@ -94,7 +94,7 @@ function draw(){
   $('time').textContent=s==null?'Starting soon':fmt(s);
   $('film').textContent=title;
   $('film').style.display=title&&Q.get('title')!=='0'?'':'none';
-  $('state').textContent=mode==='paused'?'Paused · line up your copy here':mode==='run'?'Skip your copy to this time':'';
+  $('state').textContent=mode==='paused'?'Paused · hold your place here':mode==='run'?'Commoners, match your film to this time':'';
 }
 async function poll(){
   try{
