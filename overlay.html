@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Watch-Party Clock · Overlay</title>
+<!--
+  OBS overlay for the watch-party clock.
+  Add it in OBS as a Browser Source:  https://<your-site>/overlay.html
+  Suggested size: 700 × 240 (plaque) or 600 × 200 (?style=bare). Leave "Custom CSS" empty.
+  It reads the same live clock as the site (the Host Desk's Play / Pause / Reset) and ticks every second on its own.
+
+  Options (add to the address, joined with &):
+    ?style=bare      just the gilded digits, no plaque
+    ?style=column    a narrower plaque for the column under the webcam (Browser Source 440 × 280)
+    &title=0         hide the film title line
+    &label=0         hide the "Watch-Party Clock" heading
+    &idle=hide       hide the overlay completely until the host presses Play (default shows "Starting soon")
+    &scale=1.5       make everything bigger or smaller
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Cormorant+Garamond:ital,wght@1,500&display=swap">
+<style>
+:root{--gold:#d9b765;--goldl:#f0d890;--gold-pale:#f6e3a0;--hi:#fff6d4;--text2:#c9bfa5;--surf:#14201a;--line:rgba(217,183,101,.30);--scale:1}
+html,body{margin:0;background:transparent;overflow:hidden}
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Cinzel,Georgia,serif}
+.wrap{transform:scale(var(--scale));transform-origin:center;transition:opacity .6s}
+.wrap.gone{opacity:0}
+
+/* plaque: the site's clock card, framed in gilt */
+.plaque{position:relative;min-width:520px;padding:18px 36px 20px;text-align:center;border-radius:14px;
+  background:linear-gradient(180deg,#1f3529,#12201a);border:2px solid #c79a3a;
+  box-shadow:0 14px 30px rgba(0,0,0,.65),inset 0 0 0 1px #6b4a10,inset 0 0 0 4px rgba(255,243,184,.18),inset 0 1px 0 rgba(255,236,170,.25)}
+.plaque::before{content:'';position:absolute;inset:7px;border:1px solid rgba(240,210,140,.28);border-radius:9px;pointer-events:none}
+.label{display:flex;align-items:center;justify-content:center;gap:12px;font:700 15px Cinzel,serif;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.label::before,.label::after{content:'';width:7px;height:7px;background:var(--gold);transform:rotate(45deg)}
+.time{font:700 76px/1.05 Cinzel,serif;letter-spacing:.08em;font-variant-numeric:tabular-nums;margin:6px 0 2px;
+  color:var(--gold-pale);background:linear-gradient(180deg,var(--hi) 15%,var(--gold) 90%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 14px rgba(240,210,140,.25)) drop-shadow(0 2px 2px rgba(0,0,0,.6))}
+.film{font:italic 500 24px/1.25 'Cormorant Garamond',Georgia,serif;color:#e2d6b4;max-width:640px;margin:0 auto}
+.state{font:700 12px Cinzel,serif;letter-spacing:.2em;text-transform:uppercase;color:var(--text2);margin-top:6px}
+.idle .time{font-size:40px;letter-spacing:.1em;margin:12px 0 8px}
+.paused .time{opacity:.75}
+
+/* column: narrower plaque that fits under the webcam frame */
+.column .plaque{min-width:0;width:400px;box-sizing:border-box;padding:16px 22px 18px}
+.column .label{font-size:13px;letter-spacing:.16em;gap:10px}
+.column .time{font-size:60px;letter-spacing:.06em}
+.column .film{font-size:21px;max-width:none}
+.column .state{font-size:11px;letter-spacing:.16em}
+.column .idle .time,.column.idle .time{font-size:32px}
+
+/* bare: digits only, with a dark halo so they read over any scene */
+.bare .plaque{background:none;border:0;box-shadow:none;padding:0;min-width:0}
+.bare .plaque::before{display:none}
+.bare .time{filter:drop-shadow(0 0 2px rgba(0,0,0,.9)) drop-shadow(0 3px 8px rgba(0,0,0,.85))}
+.bare .label,.bare .film,.bare .state{text-shadow:0 1px 3px rgba(0,0,0,.95),0 0 10px rgba(0,0,0,.8)}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <div class="plaque">
+    <div class="label" id="label">Watch-Party Clock</div>
+    <div class="time" id="time" role="timer" aria-live="off">--:--:--</div>
+    <div class="film" id="film"></div>
+    <div class="state" id="state"></div>
+  </div>
+</div>
+<script>
+const Q=new URLSearchParams(location.search);
+const LIVE_FN='/.netlify/functions/live';
+const POLL_MS=3000;   // how often to check the Host Desk; the seconds tick locally in between
+const $=id=>document.getElementById(id), wrap=$('wrap');
+if(Q.get('style')==='bare')document.body.classList.add('bare');
+if(Q.get('style')==='column')document.body.classList.add('column');
+if(Q.get('title')==='0')$('film').hidden=true;
+if(Q.get('label')==='0')$('label').hidden=true;
+const sc=parseFloat(Q.get('scale'));if(sc>0&&sc<5)document.documentElement.style.setProperty('--scale',sc);
+
+let clock=null, title='', last='';
+const pad=n=>String(Math.floor(n)).padStart(2,'0');
+const fmt=s=>`${pad(s/3600)}:${pad(s%3600/60)}:${pad(s%60)}`;
+// same format the Host Desk writes: "run|<start time>" while playing, "pause|<seconds>" while paused, "" when reset
+function parse(v){
+  if(!v)return null;const[m,x]=v.split('|');
+  if(m==='run'){const t=Date.parse(x);return isNaN(t)?null:{running:true,start:t}}
+  if(m==='pause'&&!isNaN(+x))return{running:false,base:+x};return null}
+function secs(){return!clock?null:clock.running?Math.max(0,(Date.now()-clock.start)/1000):clock.base}
+
+function draw(){
+  const s=secs(), mode=!clock?'idle':clock.running?'run':'paused';
+  wrap.className='wrap '+mode+(mode==='idle'&&Q.get('idle')==='hide'?' gone':'');
+  $('time').textContent=s==null?'Starting soon':fmt(s);
+  $('film').textContent=title;
+  $('film').style.display=title&&Q.get('title')!=='0'?'':'none';
+  $('state').textContent=mode==='paused'?'Paused · line up your copy here':mode==='run'?'Skip your copy to this time':'';
+}
+async function poll(){
+  try{
+    const r=await fetch(LIVE_FN,{cache:'no-store'});
+    if(r.ok){const d=await r.json();
+      if(d&&!d.error){const key=(d.clock||'')+'¦'+(d.title||'');
+        if(key!==last){last=key;clock=parse(d.clock||'');title=d.title||'';draw()}}}
+  }catch(e){/* keep ticking with the last known clock; try again next poll */}
+  setTimeout(poll,POLL_MS);
+}
+// tick a few times a second so the seconds never stutter or skip
+setInterval(draw,250);
+draw();poll();
+</script>
+</body>
+</html>
