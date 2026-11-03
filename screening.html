@@ -35,6 +35,19 @@ main .stack>.card:last-child{flex:1}
 .pincard{display:flex;flex-direction:column}
 .pincard .slip,.pincard .slip-body{flex:1;display:flex;flex-direction:column}
 .pincard ol.pins{flex:1 1 auto;contain:size;min-height:18rem;max-height:none}
+/* host only: the remove control sits quietly at the row's end and shows on hover or focus */
+ol.pins li.has-x{grid-template-columns:84px 1fr auto;column-gap:.6rem}
+.unpin{align-self:center;display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;min-height:0;margin:0;padding:0 .5rem;
+  font:600 .95rem/1 Inter,system-ui,sans-serif;color:var(--muted);background:transparent;border:1px solid transparent;border-radius:999px;box-shadow:none;cursor:pointer;
+  opacity:.55;transition:opacity .15s,background .15s,color .15s;position:relative}
+.unpin::after{content:'';position:absolute;inset:-8px}           /* a 44px tap target around the small button */
+.unpin span{font-size:1.25rem;line-height:1}
+ol.pins li:hover .unpin,.unpin:focus-visible{opacity:1}
+.unpin:hover{background:rgba(42,33,24,.08);color:var(--ink);filter:none}
+.unpin.ask{opacity:1;color:#fff;background:#8f2f25;border-color:#6e2219;font-size:.8rem;letter-spacing:.02em}
+.unpin:disabled{opacity:.6;cursor:default}
+@media(hover:none){.unpin{opacity:.8}}
+@media(max-width:560px){ol.pins li.has-x{grid-template-columns:68px 1fr auto}}
 /* the clock is the most important card for latecomers: first on the page, big, and it follows you as you scroll */
 .clock{position:sticky;top:0;z-index:20;margin-bottom:1.25rem;padding:.7rem 1.25rem;display:grid;grid-template-columns:auto 1fr;align-items:center;column-gap:2rem;text-align:left;box-shadow:0 6px 18px rgba(0,0,0,.5)}
 .clock h2{grid-column:1;margin:0 0 .1rem;border:0;padding:0;font-size:.95rem}
@@ -257,9 +270,21 @@ function renderPins(){
     if(safe(p.url)){const a=el('a',p.note||p.url);a.href=p.url;a.target='_blank';a.rel='noopener noreferrer';r.append(a)}
     else r.append(document.createTextNode(p.note));
     if(p.local)r.append(el('small','not saved yet','loc'));
-    if(HOST&&p.id){const x=el('button','Remove','alt unpin');x.type='button';x.setAttribute('aria-label','Remove pin: '+(p.note||p.url));x.onclick=()=>window.unpin&&unpin(p.id);r.append(' ',x)}
+    if(HOST&&p.id){li.classList.add('has-x');li.append(unpinBtn(p))}
     ol.append(li)});
   fillSlip();ol.scrollTop=ol.scrollHeight}
+// host only: a small × at the end of the row; the first tap asks "Remove?", the second removes it
+function unpinBtn(p){
+  const name=p.note||p.url,x=el('button',null,'unpin');x.type='button';
+  const idle=()=>{x.classList.remove('ask');x.innerHTML='<span aria-hidden="true">×</span>';x.setAttribute('aria-label','Remove pin: '+name);x.title='Remove'};
+  let t;idle();
+  x.onclick=()=>{
+    if(!x.classList.contains('ask')){x.classList.add('ask');x.textContent='Remove?';x.setAttribute('aria-label','Confirm: remove pin '+name);clearTimeout(t);t=setTimeout(idle,3500);return}
+    clearTimeout(t);x.disabled=true;x.textContent='…';
+    Promise.resolve(window.unpin&&unpin(p.id)).finally(()=>{if(x.isConnected){x.disabled=false;idle()}})};
+  x.addEventListener('blur',()=>{if(!x.disabled){clearTimeout(t);idle()}});
+  x.addEventListener('keydown',e=>{if(e.key==='Escape'){clearTimeout(t);idle()}});
+  return x}
 // blank ruled lines down to the bottom of the slip, so the card never shows an empty gap
 function fillSlip(){
   const ol=$('pins');ol.querySelectorAll('li.blank').forEach(li=>li.remove());
