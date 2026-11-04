@@ -1,177 +1,107 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#080d0b">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>The Curiosity Commons · Documentary watch parties on Twitch</title>
-<meta name="description" content="A Twitch documentary club. Watch along on your own screen while we chat live: what's on view, where to watch for free, the watch-party clock and research.">
-<link rel="canonical" href="https://curious-commons.netlify.app/">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="The Curiosity Commons">
-<meta property="og:title" content="The Curiosity Commons · Documentary watch parties on Twitch">
-<meta property="og:description" content="A Twitch documentary club. Watch along on your own screen while we chat live: what's on view, where to watch for free, the watch-party clock and research.">
-<meta property="og:url" content="https://curious-commons.netlify.app/">
-<meta property="og:image" content="https://curious-commons.netlify.app/og-image.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="The Curiosity Commons: a gilt-framed portrait of a woman before stacks of old books, with the channel name in gold">
-<meta name="twitter:card" content="summary_large_image">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://curious-commons.netlify.app/#site","name":"The Curiosity Commons","url":"https://curious-commons.netlify.app/","description":"A Twitch documentary club. Watch along on your own screen while we chat live: what's on view, where to watch for free, the watch-party clock and research.","publisher":{"@id":"https://curious-commons.netlify.app/#org"}},{"@type":"Organization","@id":"https://curious-commons.netlify.app/#org","name":"The Curiosity Commons","url":"https://curious-commons.netlify.app/","logo":"https://curious-commons.netlify.app/apple-touch-icon.png","sameAs":["https://www.twitch.tv/curiosity_commons"]}]}</script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;600&family=Special+Elite&display=swap">
-<link rel="stylesheet" href="commons.css">
-<style>
-.wall{grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:2.2rem 1.6rem}
-.wall li{padding:14px 6px 0;display:flex}
-.wall a{display:flex;flex-direction:column;width:100%;text-decoration:none;color:#1f160a;transition:transform .15s}
-.wall a:hover{transform:translateY(-4px)}
-/* gilded cartouche plaque: gold leaf with soft mottling, clipped corners and a moulded inner border */
-.wall .cap{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;margin:1rem 6px 0;padding:.65rem .6rem .7rem;text-align:center;
-  --cut:9px;clip-path:polygon(var(--cut) 0,calc(100% - var(--cut)) 0,100% var(--cut),100% calc(100% - var(--cut)),calc(100% - var(--cut)) 100%,var(--cut) 100%,0 calc(100% - var(--cut)),0 var(--cut));
-  background:url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%27160%27%20height=%27160%27%3E%3Cfilter%20id=%27n%27%3E%3CfeTurbulence%20type=%27fractalNoise%27%20baseFrequency=%27.035%27%20numOctaves=%272%27%20stitchTiles=%27stitch%27/%3E%3CfeColorMatrix%20values=%270%200%200%200%200.42%200%200%200%200%200.28%200%200%200%200%200.06%200%200%200%200.28%200%27/%3E%3C/filter%3E%3Crect%20width=%27100%%27%20height=%27100%%27%20filter=%27url(%23n)%27/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%27160%27%20height=%27160%27%3E%3Cfilter%20id=%27n%27%3E%3CfeTurbulence%20type=%27fractalNoise%27%20baseFrequency=%27.9%27%20numOctaves=%273%27%20stitchTiles=%27stitch%27/%3E%3CfeColorMatrix%20values=%270%200%200%200%200.35%200%200%200%200%200.22%200%200%200%200%200.05%200%200%200%200.18%200%27/%3E%3C/filter%3E%3Crect%20width=%27100%%27%20height=%27100%%27%20filter=%27url(%23n)%27/%3E%3C/svg%3E"),radial-gradient(ellipse 80% 60% at 30% 20%,rgba(255,248,210,.7),transparent 60%),linear-gradient(160deg,#f2d98a 0%,#d2a647 35%,#b0812a 60%,#e2bf68 85%,#c99b40 100%);
-  filter:drop-shadow(0 5px 7px rgba(0,0,0,.6))}
-.wall .cap::before{content:'';position:absolute;inset:4px;pointer-events:none;border:1px solid rgba(90,60,10,.7);box-shadow:inset 0 0 0 1px rgba(255,240,190,.55);
-  --c:7px;clip-path:polygon(var(--c) 0,calc(100% - var(--c)) 0,100% var(--c),100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,var(--c) 100%,0 calc(100% - var(--c)),0 var(--c))}
-.wall .cap::after{content:'\25C6';position:absolute;top:1px;left:50%;transform:translateX(-50%);font-size:7px;line-height:1;color:#7a5416}
-.wall .cap .d,.wall .cap .n{text-shadow:0 1px 0 rgba(255,240,190,.6)}
-.wall .cap .d{color:#2a1a06}
-.wall .cap .n{color:#1f160a;font:700 1.3rem/1.2 Cinzel,var(--serif);letter-spacing:.02em;text-wrap:balance;margin:.2rem 0 .35rem}
-.wall .cap .d{font-size:.8rem}
-.cap .m{display:block;font-size:.85rem;color:#3a2808;margin-bottom:.5rem}
-.cap .badge{margin-top:auto}
-.badge.later{background:rgba(255,246,220,.5);color:var(--leather);border:1px solid var(--leather);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
-/* On View: a brass gallery picture light over the film that is showing now */
-.wall li.lit{position:relative;isolation:isolate;padding-top:34px}
-.wall li.lit::before{content:'';position:absolute;top:5px;left:50%;transform:translateX(-50%);width:58%;height:12px;z-index:3;border-radius:6px 6px 8px 8px;
-  background:linear-gradient(180deg,#f6e3a0,#c79a3a 45%,#7a5416);box-shadow:0 2px 4px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,250,220,.9),0 7px 9px -3px rgba(255,236,180,.95),0 10px 24px 2px rgba(255,200,120,.4)}
-.wall li.lit::after{content:'';position:absolute;top:0;left:50%;width:4px;height:7px;transform:translateX(-50%);z-index:3;border-radius:2px;background:linear-gradient(90deg,#7a5416,#e6c466,#7a5416)}
-.wall li.lit a{position:relative}
-.wall li.lit a::before{content:'';position:absolute;left:-2%;right:-2%;top:-18px;height:68%;z-index:2;pointer-events:none;mix-blend-mode:screen;filter:blur(3px);
-  background:linear-gradient(180deg,rgba(255,230,170,.42),rgba(255,214,140,.12) 55%,transparent);clip-path:polygon(30% 0,70% 0,100% 100%,0 100%);animation:breathe 5s ease-in-out infinite}
-.wall li.lit a::after{content:'';position:absolute;left:-28%;right:-28%;top:-40px;height:85%;z-index:-1;pointer-events:none;
-  background:radial-gradient(ellipse 55% 50% at 50% 30%,rgba(255,214,140,.36),rgba(255,190,110,.13) 45%,transparent 75%);animation:breathe 5s ease-in-out infinite}
-@keyframes breathe{0%,100%{opacity:1}50%{opacity:.82}}
-#tonight{margin:.5rem 0 1.25rem;font-size:1.15rem}
-/* phones: two smaller framed posters per row, with lighter ornaments */
-@media(max-width:560px){
-.wall{grid-template-columns:repeat(2,minmax(0,1fr));gap:1.6rem .9rem}
-.wall li{padding:10px 2px 0}
-.wall .frame{padding:8px}
-.wall .frame::before{inset:-5px}
-.wall .frame::after{width:46px;height:18px;top:-11px}
-.wall .cap{margin:.75rem 0 0;padding:.5rem .4rem .55rem;--cut:7px}
-.wall li.lit{padding-top:28px}
-.wall li.lit::before{height:10px}
-.wall .cap .n{font-size:.98rem;letter-spacing:0}
-.wall .cap .d,.cap .m{font-size:.72rem}
-.cap .badge{font-size:.66rem;padding:.12rem .55rem;letter-spacing:.06em}
-#tonight{font-size:1.05rem}
-}
-/* Past Screenings: the archive drawer, set apart from the live schedule above */
-.sec-past{margin-top:2.75rem;padding:1.25rem 1.25rem 1.5rem;border-radius:12px;background:linear-gradient(180deg,#1f0c0f,#14080a);border:1px solid rgba(122,43,50,.6);box-shadow:inset 0 3px 18px rgba(0,0,0,.6),inset 0 1px 0 rgba(233,201,196,.08)}
-.sec-past h3{display:flex;align-items:center;gap:.7rem;margin-top:0;color:var(--brassl)}
-.sec-past h3::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(210,173,95,.45),transparent)}
-.sec-past>.meta{margin-top:0;font-style:italic;font-family:var(--serif);font-size:1.1rem}
-.sec-past .wall{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:1.5rem 1.1rem}
-.sec-past .wall li{padding:6px 2px 0}
-.sec-past .frame{padding:7px;filter:saturate(.55) brightness(.82);transition:filter .2s}
-.sec-past .frame::after{display:none}
-.sec-past .frame::before{inset:-4px}
-.sec-past .cover,.sec-past .ph{filter:sepia(.35)}
-.sec-past .ph{font-size:.78rem;overflow:hidden;word-break:break-word}
-.sec-past .wall a:hover .frame,.sec-past .wall a:focus-visible .frame{filter:none}
-.sec-past .wall .cap{clip-path:none;filter:none;margin:.7rem 2px 0;padding:.45rem .45rem .5rem;border-radius:2px;background:#f5eee3;border:1px solid #b9a58f;box-shadow:inset 0 0 18px rgba(107,79,29,.16),0 3px 8px rgba(0,0,0,.45)}
-.sec-past .wall .cap .d{font:400 .72rem 'Special Elite','Courier New',monospace;letter-spacing:0;color:#243f73;transform:rotate(-1.5deg)}
-.sec-past .wall .cap::before,.sec-past .wall .cap::after{display:none}
-.sec-past .wall .cap .d::before{content:'Shown '}
-.sec-past .wall .cap .d,.sec-past .wall .cap .n{text-shadow:none}
-.sec-past .wall .cap .n{font:600 1.05rem/1.2 var(--serif);letter-spacing:0;color:var(--ink);margin:.15rem 0 .2rem}
-.sec-past .wall .cap .m{font-size:.72rem;color:var(--muted);margin-bottom:0}
-@media(max-width:560px){
-.sec-past{margin-left:-.35rem;margin-right:-.35rem;padding:1rem .8rem 1.2rem}
-.sec-past .wall{grid-template-columns:repeat(3,minmax(0,1fr));gap:1.1rem .55rem}
-.sec-past .frame{padding:5px}
-.sec-past .ph{font-size:.6rem;letter-spacing:.02em;padding:.3rem}
-.sec-past .wall .cap{padding:.35rem .3rem .4rem}
-.sec-past .wall .cap .n{font-size:.88rem}
-.sec-past .wall .cap .d{font-size:.62rem}
-.sec-past .wall .cap .m{display:none}
-}
-</style>
-</head>
-<body>
-<a class="skip" href="#main">Skip to content</a>
-<div class="wrap">
-<header>
-  <img src="profile.webp" width="355" height="480" alt="Portrait of a woman in a white gown seated before towering stacks of old books">
-  <div><h1>The Curiosity Commons</h1><p class="tag">Commoners gaining power through knowledge</p></div>
-</header>
-<main id="main">
-  <section class="card" aria-labelledby="wallh">
-    <h2 id="wallh">The Gallery Wall</h2>
-    <p class="meta">Choose a documentary to open its page: where to watch, the watch-party clock, your own notes and our research links.</p>
-    <p id="tonight"></p>
-    <div id="wall"></div>
-  </section>
-</main>
-<footer>
-  <p>Film information and posters from <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">TMDB</a>. This site uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.
-  Streaming availability from <a href="https://www.justwatch.com/" target="_blank" rel="noopener noreferrer">JustWatch</a>.</p>
-</footer>
-</div>
-<script src="commons.js"></script>
-<script>
-const DEBUG=new URLSearchParams(location.search).has('debug');
-function showDebug(){
-  let d=$('dbg');if(!d){d=el('section',null,'card');d.id='dbg';$('main').append(d)}
-  d.textContent='';d.append(el('h2','Diagnostics'));
-  d.append(el('p','Per film: what the page read from the TMDB column, and what the lookup said.','meta'));
-  S.rows.forEach(r=>{const p=el('p',null);p.append(el('b',r.title+': '));
-    p.append(document.createTextNode('TMDB cell = '+(r.tmdb||'(empty)')+' | poster = '+(r.img||'(none)')+' | lookup = '+(r.status||'not run yet')));d.append(p)})}
-window.onStatus=()=>{if(DEBUG)showDebug()};
-let q;window.onEnriched=()=>{cancelAnimationFrame(q);q=requestAnimationFrame(render)};
-// a film more than a week away (or with no date yet) is a Future exhibition; within the week it is Opening soon
-const isLater=r=>!r.date||r.date-midnight()>7*DAY;
-const GROUPS=[['now','Now on View','On view in the Commons right now. Open it for the watch-party clock.'],['soon','Opening Soon',''],['past','From the Archive','Catch up on what the Curator has shown.']];
-function render(){
-  if(DEBUG)showDebug();
-  const wall=$('wall');wall.textContent='';
-  GROUPS.forEach(([k,title,blurb])=>{
-    const rows=S.rows.filter(r=>when(r)===k).sort((a,b)=>k==='past'?(b.date||0)-(a.date||0):(a.date||1e15)-(b.date||1e15));
-    if(!rows.length)return;
-    const sec=el('section',null,'wall-sec sec-'+k),h=el('h3',title),ul=el('ul',null,'gal wall');
-    h.id='g-'+k;sec.setAttribute('aria-labelledby',h.id);
-    rows.forEach(r=>{
-      enrich(r);
-      const li=document.createElement('li'),a=document.createElement('a'),cap=el('span',null,'cap');
-      a.href='screening.html?show='+encodeURIComponent(r.title);
-      cap.append(el('span',r.dateLabel,'d'),el('span',r.title,'n'),el('span',[r.year,r.dur].filter(Boolean).join(' \u00b7 '),'m'));
-      if(k!=='past'){const far=k==='soon'&&isLater(r);cap.append(el('span',k==='now'?'On view':far?'Future exhibition':'Opening soon','badge '+(far?'later':k)))}
-      if(k==='now')li.classList.add('lit');
-      a.append(cover(r),cap);li.append(a);ul.append(li)});
-    sec.append(h);if(blurb)sec.append(el('p',blurb,'meta'));sec.append(ul);wall.append(sec)});
-  const next=S.rows.length?autoPick():null,t=$('tonight');t.textContent='';
-  if(next&&when(next)!=='past'){const a=el('a',(when(next)==='now'?'Now on view: ':'Opening soon: ')+next.title+(when(next)==='soon'&&next.dateLabel?' \u00b7 '+next.dateLabel:'')+' \u2192');a.href='screening.html?show='+encodeURIComponent(next.title);t.append(a)}
-}
-// Now Showing comes from the host's Play/Reset (Netlify function); the sheet's Live tab is only a fallback
-async function liveTitle(){
-  const fn=await getLive();if(fn)return fn.title||'';
-  try{const t=await load(LIVE_TAB,/clock|now playing/i),r=t.rows[0]&&t.rows[0].c||[];return cell(r[1])}catch(e){return null}}
-async function refreshLive(){
-  if(document.hidden||!S.rows.length)return;
-  const t=await liveTitle();if(t!=null&&t!==S.liveTitle){S.liveTitle=t;render()}}
-(async()=>{
-  const lv=liveTitle().then(t=>{if(t!=null)S.liveTitle=t});
-  try{S.rows=parseSchedule(await load(SCHEDULE_TAB))}
-  catch(e){const p=el('p','Could not load the schedule ('+e.message+'). Check the sheet is shared as “Anyone with the link: Viewer”, then reload.','err');p.setAttribute('role','alert');$('tonight').append(p);return}
-  await lv;render();
-  setInterval(refreshLive,15000);document.addEventListener('visibilitychange',refreshLive);
-})();
-</script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#080d0b" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <title>The Curiosity Commons · Documentary watch parties on Twitch</title>
+    <meta
+      name="description"
+      content="A Twitch documentary club. Watch along on your own screen while we chat live: what's on view, where to watch for free, the watch-party clock and research."
+    />
+    <link rel="canonical" href="https://curious-commons.netlify.app/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="The Curiosity Commons" />
+    <meta
+      property="og:title"
+      content="The Curiosity Commons · Documentary watch parties on Twitch"
+    />
+    <meta
+      property="og:description"
+      content="A Twitch documentary club. Watch along on your own screen while we chat live: what's on view, where to watch for free, the watch-party clock and research."
+    />
+    <meta property="og:url" content="https://curious-commons.netlify.app/" />
+    <meta property="og:image" content="https://curious-commons.netlify.app/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="The Curiosity Commons: a gilt-framed portrait of a woman before stacks of old books, with the channel name in gold"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://curious-commons.netlify.app/#site",
+            "name": "The Curiosity Commons",
+            "url": "https://curious-commons.netlify.app/",
+            "description": "A Twitch documentary club. Watch along on your own screen while we chat live: what's on view, where to watch for free, the watch-party clock and research.",
+            "publisher": { "@id": "https://curious-commons.netlify.app/#org" }
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://curious-commons.netlify.app/#org",
+            "name": "The Curiosity Commons",
+            "url": "https://curious-commons.netlify.app/",
+            "logo": "https://curious-commons.netlify.app/apple-touch-icon.png",
+            "sameAs": ["https://www.twitch.tv/curiosity_commons"]
+          }
+        ]
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;600&family=Special+Elite&display=swap"
+    />
+    <link rel="stylesheet" href="commons.css" />
+    <link rel="stylesheet" href="index.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <div class="wrap">
+      <header>
+        <img
+          src="profile.webp"
+          width="355"
+          height="480"
+          alt="Portrait of a woman in a white gown seated before towering stacks of old books"
+        />
+        <div>
+          <h1>The Curiosity Commons</h1>
+          <p class="tag">Commoners gaining power through knowledge</p>
+        </div>
+      </header>
+      <main id="main">
+        <section class="card" aria-labelledby="wallh">
+          <h2 id="wallh">The Gallery Wall</h2>
+          <p class="meta">
+            Choose a documentary to open its page: where to watch, the watch-party clock, your own
+            notes and our research links.
+          </p>
+          <p id="tonight"></p>
+          <div id="wall"></div>
+        </section>
+      </main>
+      <footer>
+        <p>
+          Film information and posters from
+          <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">TMDB</a>.
+          This site uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise
+          approved by TMDB. Streaming availability from
+          <a href="https://www.justwatch.com/" target="_blank" rel="noopener noreferrer"
+            >JustWatch</a
+          >.
+        </p>
+      </footer>
+    </div>
+    <script type="module" src="index.js"></script>
+  </body>
 </html>

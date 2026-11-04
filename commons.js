@@ -1,108 +1,273 @@
-const SHEET_ID='1ELAjjDmGoAAaRJ_UiL4by5RZVNC7_bsp3yoEU9IW8oE';
+// Shared by every page: the Google Sheet loader, the live state from Netlify, and small DOM helpers.
+// Each page imports only the names it uses, e.g.  import { $, el, S } from './commons.js';
+export const SHEET_ID = '1ELAjjDmGoAAaRJ_UiL4by5RZVNC7_bsp3yoEU9IW8oE';
 // Your Twitch channel name, the part after twitch.tv/ (e.g. 'thecuriouscommons'). Leave empty to hide the button.
-const TWITCH_CHANNEL='curiosity_commons';
-const SCHEDULE_TAB='Weekly Schedule', LIVE_TAB='Live', PINS_TAB='Pins';
-const $=id=>document.getElementById(id), HOST=new URLSearchParams(location.search).has('host');
-const S={rows:[],cur:null,liveTitle:'',pins:[],clock:null,override:false};
+export const TWITCH_CHANNEL = 'curiosity_commons';
+export const SCHEDULE_TAB = 'Weekly Schedule',
+  LIVE_TAB = 'Live',
+  PINS_TAB = 'Pins';
+export const $ = id => document.getElementById(id),
+  HOST = new URLSearchParams(location.search).has('host');
+export const S = { rows: [], cur: null, liveTitle: '', pins: [], clock: null, override: false };
 
 /* --- sheet loading via <script> (works from a local file, no CORS) --- */
-function load(tab,need){return new Promise((res,rej)=>{
-  const cb='cb'+Math.random().toString(36).slice(2),s=document.createElement('script');
-  const done=()=>{clearTimeout(t);delete window[cb];s.remove()};
-  const t=setTimeout(()=>{done();rej(new Error('timeout'))},15000);
-  window[cb]=d=>{done();if(d.status==='error')return rej(new Error('sheet'));
-    // Google quietly serves the first tab when the named tab is missing, so check the headings are the expected ones
-    if(need&&!d.table.cols.some(c=>need.test(c.label||'')))return rej(new Error('missing tab'));res(d.table)};
-  s.onerror=()=>{done();rej(new Error('network'))};
-  s.src=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(tab)}&headers=1&tqx=out:json;responseHandler:${cb}`;
-  document.head.appendChild(s)})}
-const cell=c=>c?String(c.f??c.v??'').replace(/\u200b/g,'').trim():'';
-const el=(t,txt,cls)=>{const e=document.createElement(t);if(txt!=null)e.textContent=txt;if(cls)e.className=cls;return e};
-const safe=u=>/^https?:\/\//i.test(u);
+export function load(tab, need) {
+  return new Promise((res, rej) => {
+    const cb = 'cb' + Math.random().toString(36).slice(2),
+      s = document.createElement('script');
+    const done = () => {
+      clearTimeout(t);
+      delete window[cb];
+      s.remove();
+    };
+    const t = setTimeout(() => {
+      done();
+      rej(new Error('timeout'));
+    }, 15000);
+    window[cb] = d => {
+      done();
+      if (d.status === 'error') return rej(new Error('sheet'));
+      // Google quietly serves the first tab when the named tab is missing, so check the headings are the expected ones
+      if (need && !d.table.cols.some(c => need.test(c.label || '')))
+        return rej(new Error('missing tab'));
+      res(d.table);
+    };
+    s.onerror = () => {
+      done();
+      rej(new Error('network'));
+    };
+    s.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(tab)}&headers=1&tqx=out:json;responseHandler:${cb}`;
+    document.head.appendChild(s);
+  });
+}
+export const cell = c =>
+  c
+    ? String(c.f ?? c.v ?? '')
+        .replace(/\u200b/g, '')
+        .trim()
+    : '';
+export const el = (t, txt, cls) => {
+  const e = document.createElement(t);
+  if (txt != null) e.textContent = txt;
+  if (cls) e.className = cls;
+  return e;
+};
+export const safe = u => /^https?:\/\//i.test(u);
 
 /* --- schedule --- */
-function parseSchedule(t){
-  const L=t.cols.map(c=>(c.label||'').toLowerCase());
-  const col=k=>L.map((l,i)=>l.includes(k)?i:-1).filter(i=>i>=0);
+export function parseSchedule(t) {
+  const L = t.cols.map(c => (c.label || '').toLowerCase());
+  const col = k => L.map((l, i) => (l.includes(k) ? i : -1)).filter(i => i >= 0);
   // columns are found by their heading (so you can add or reorder columns); the old positions are only a fallback
-  const at=(k,def=-1)=>{const i=L.findIndex(l=>l.includes(k));return i>=0?i:def};
-  const iDate=at('date',0),iTitle=at('title',1),iYear=at('year'),iDur=at('duration'),iDesc=at('description'),
-        iCats=at('categor'),iTags=at('tag'),iMore=at('follow',at('recommend'));
-  const imgI=(col('poster')[0]??col('image')[0]??-1),tmdbI=(col('tmdb')[0]??col('tmbd')[0]??col('film link')[0]??-1);
-  return t.rows.filter(r=>r.c&&cell(r.c[iTitle])).map(r=>{
-    const c=r.c,d=c[iDate]&&String(c[iDate].v).startsWith('Date(')?new Date(...c[iDate].v.slice(5,-1).split(',').map(Number)):null;
-    // a TMDB link is recognised by what it looks like, wherever it sits (so a mislabelled column still works)
-    const isTm=v=>/themoviedb\.org\/(movie|tv)\/\d+|themoviedb\.org\/search/.test(v);
-    const tmdbVal=(tmdbI>=0&&isTm(cell(c[tmdbI]))?cell(c[tmdbI]):'')||c.map(cell).find(isTm)||'';
-    const yr=cell(c[iYear]);
-    return{date:d,dateLabel:cell(c[iDate]),title:cell(c[iTitle]),year:/^\d{4}$/.test(yr)?yr:'',dur:cell(c[iDur]),desc:cell(c[iDesc]),cats:cell(c[iCats]),tags:cell(c[iTags]),
-      free:[],open:[],stream:[],more:cell(c[iMore]),img:imgI>=0?cell(c[imgI]):'',tmdb:tmdbVal}});
+  const at = (k, def = -1) => {
+    const i = L.findIndex(l => l.includes(k));
+    return i >= 0 ? i : def;
+  };
+  const iDate = at('date', 0),
+    iTitle = at('title', 1),
+    iYear = at('year'),
+    iDur = at('duration'),
+    iDesc = at('description'),
+    iCats = at('categor'),
+    iTags = at('tag'),
+    iMore = at('follow', at('recommend')),
+    iRt = at('rotten', at('rt score'));
+  const imgI = col('poster')[0] ?? col('image')[0] ?? -1,
+    tmdbI = col('tmdb')[0] ?? col('tmbd')[0] ?? col('film link')[0] ?? -1;
+  return t.rows
+    .filter(r => r.c && cell(r.c[iTitle]))
+    .map(r => {
+      const c = r.c,
+        d =
+          c[iDate] && String(c[iDate].v).startsWith('Date(')
+            ? new Date(...c[iDate].v.slice(5, -1).split(',').map(Number))
+            : null;
+      // a TMDB link is recognised by what it looks like, wherever it sits (so a mislabelled column still works)
+      const isTm = v => /themoviedb\.org\/(movie|tv)\/\d+|themoviedb\.org\/search/.test(v);
+      const tmdbVal =
+        (tmdbI >= 0 && isTm(cell(c[tmdbI])) ? cell(c[tmdbI]) : '') || c.map(cell).find(isTm) || '';
+      const yr = cell(c[iYear]);
+      return {
+        date: d,
+        dateLabel: cell(c[iDate]),
+        title: cell(c[iTitle]),
+        year: /^\d{4}$/.test(yr) ? yr : '',
+        dur: cell(c[iDur]),
+        desc: cell(c[iDesc]),
+        cats: cell(c[iCats]),
+        tags: cell(c[iTags]),
+        free: [],
+        open: [],
+        stream: [],
+        more: cell(c[iMore]),
+        // a score typed in the Sheet wins over the looked-up one; "91" and "91%" both work
+        rt: (m => (m ? m[1] + '%' : ''))(cell(c[iRt]).match(/^(\d{1,3})\s*%?$/)),
+        img: imgI >= 0 ? cell(c[imgI]) : '',
+        tmdb: tmdbVal
+      };
+    });
 }
-const DAY=864e5;
-const midnight=()=>{const t=new Date();t.setHours(0,0,0,0);return t};
+export const DAY = 864e5;
+export const midnight = () => {
+  const t = new Date();
+  t.setHours(0, 0, 0, 0);
+  return t;
+};
 // 'now' = the film the host started the clock on (Play), until Reset or "Back to the schedule".
 // Every other film: 'soon' if its date is today or later (or it has no date), 'past' if its date has gone by.
-function when(r){
-  const lt=(S.liveTitle||'').toLowerCase();
-  if(lt&&r.title.toLowerCase()===lt)return'now';
-  return r.date&&r.date<midnight()?'past':'soon';
+export function when(r) {
+  const lt = (S.liveTitle || '').toLowerCase();
+  if (lt && r.title.toLowerCase() === lt) return 'now';
+  return r.date && r.date < midnight() ? 'past' : 'soon';
 }
 /* --- live state (clock, Now Showing, pins) from the Netlify function; used by every page --- */
-const LIVE_FN='/.netlify/functions/live';
-async function getLive(){
-  try{const r=await fetch(LIVE_FN,{cache:'no-store'});if(!r.ok)return null;const d=await r.json();return d&&!d.error?d:null}catch(e){return null}}
-function autoPick(){
-  const want=new URLSearchParams(location.search).get('show');
-  if(want){const m=S.rows.find(r=>r.title===want);if(m)return m}
-  const now=S.rows.find(r=>when(r)==='now');if(now)return now;
-  const soon=S.rows.filter(r=>when(r)==='soon').sort((a,b)=>(a.date||1e15)-(b.date||1e15))[0];
-  return soon||S.rows[S.rows.length-1];
+export const LIVE_FN = '/.netlify/functions/live';
+export async function getLive() {
+  try {
+    const r = await fetch(LIVE_FN, { cache: 'no-store' });
+    if (!r.ok) return null;
+    const d = await r.json();
+    return d && !d.error ? d : null;
+  } catch (e) {
+    return null;
+  }
 }
-const isImg=u=>/^(https?:\/\/\S+|[\w\-.\/]+\.(png|jpe?g|webp|gif|avif))$/i.test(u||'');
-const FN='/.netlify/functions/film';
-async function enrich(r){
-  if(r.tried)return;
-  r.tried=true;
-  try{
-    const m=(r.tmdb||'').match(/(movie|tv)\/(\d+)/);
-    const sq=(r.tmdb||'').match(/[?&]query=([^&#]+)/);
-    let name=r.title;if(sq){try{name=decodeURIComponent(sq[1].replace(/\+/g,' '))}catch(e){}}
-    const res=await fetch(m?`${FN}?type=${m[1]}&id=${m[2]}`:`${FN}?title=${encodeURIComponent(name)}&year=${encodeURIComponent(r.year)}`);
-    if(res.status===404){r.status='the lookup function was not found (404): check the file is at netlify/functions/film.js and the site has redeployed';return}
-    const d=await res.json();
-    if(d.error){r.status='error from the function: '+d.error+(d.detail?' ('+d.detail+')':'');return}
-    if(!d.found){r.status='TMDB returned no match'+(m?'':' (no TMDB link in the sheet, so it searched by title)');return}
-    r.status='ok'+(m?' (used the TMDB link)':' (searched by title)');
-    let changed=true;r.api=r.api||{};
-    if(!isImg(r.img)&&d.poster){r.img=d.poster;changed=true}
-    if(!r.desc&&d.overview){r.desc=d.overview;changed=true}
-    if(!r.year&&d.year){r.year=d.year;changed=true}
-    if(!r.cats&&d.genres&&d.genres.length){r.cats=d.genres.join(', ');changed=true}
-    if(!r.dur&&d.runtime){r.dur=Math.floor(d.runtime/60)+'H '+d.runtime%60+'M';changed=true}
-    ['free','open','stream'].forEach(k=>{r[k]=d[k]||[]});r.watchLink=d.watchLink||'';
-    if(changed&&window.onEnriched)onEnriched(r)
-  }catch(e){r.status='the lookup could not be reached or did not return data (is this the Netlify site, and has it redeployed?)'}
-  finally{if(window.onStatus)onStatus(r)}
+export function autoPick() {
+  const want = new URLSearchParams(location.search).get('show');
+  if (want) {
+    const m = S.rows.find(r => r.title === want);
+    if (m) return m;
+  }
+  const now = S.rows.find(r => when(r) === 'now');
+  if (now) return now;
+  const soon = S.rows
+    .filter(r => when(r) === 'soon')
+    .sort((a, b) => (a.date || 1e15) - (b.date || 1e15))[0];
+  return soon || S.rows[S.rows.length - 1];
 }
-function ph(r){const p=el('span',r.title,'ph');p.setAttribute('aria-hidden','true');return p}
-function cover(r){
-  const f=el('span',null,'frame');
-  if(!isImg(r.img)){f.append(ph(r));return f}
-  const i=new Image();i.loading='lazy';i.alt='';i.className='cover';i.src=r.img;
-  i.onerror=()=>i.replaceWith(ph(r));
-  f.append(i);return f}
+export const isImg = u => /^(https?:\/\/\S+|[\w\-.\/]+\.(png|jpe?g|webp|gif|avif))$/i.test(u || '');
+export const FN = '/.netlify/functions/film';
+export async function enrich(r) {
+  if (r.tried) return;
+  r.tried = true;
+  try {
+    const m = (r.tmdb || '').match(/(movie|tv)\/(\d+)/);
+    const sq = (r.tmdb || '').match(/[?&]query=([^&#]+)/);
+    let name = r.title;
+    if (sq) {
+      try {
+        name = decodeURIComponent(sq[1].replace(/\+/g, ' '));
+      } catch (e) {}
+    }
+    const res = await fetch(
+      m
+        ? `${FN}?type=${m[1]}&id=${m[2]}`
+        : `${FN}?title=${encodeURIComponent(name)}&year=${encodeURIComponent(r.year)}`
+    );
+    if (res.status === 404) {
+      r.status =
+        'the lookup function was not found (404): check the file is at netlify/functions/film.js and the site has redeployed';
+      return;
+    }
+    const d = await res.json();
+    if (d.error) {
+      r.status = 'error from the function: ' + d.error + (d.detail ? ' (' + d.detail + ')' : '');
+      return;
+    }
+    if (!d.found) {
+      r.status =
+        'TMDB returned no match' +
+        (m ? '' : ' (no TMDB link in the sheet, so it searched by title)');
+      return;
+    }
+    r.status = 'ok' + (m ? ' (used the TMDB link)' : ' (searched by title)');
+    let changed = true;
+    r.api = r.api || {};
+    if (!isImg(r.img) && d.poster) {
+      r.img = d.poster;
+      changed = true;
+    }
+    if (!r.desc && d.overview) {
+      r.desc = d.overview;
+      changed = true;
+    }
+    if (!r.year && d.year) {
+      r.year = d.year;
+      changed = true;
+    }
+    if (!r.cats && d.genres && d.genres.length) {
+      r.cats = d.genres.join(', ');
+      changed = true;
+    }
+    if (!r.dur && d.runtime) {
+      r.dur = Math.floor(d.runtime / 60) + 'H ' + (d.runtime % 60) + 'M';
+      changed = true;
+    }
+    ['free', 'open', 'stream'].forEach(k => {
+      r[k] = d[k] || [];
+    });
+    r.watchLink = d.watchLink || '';
+    if (!r.rt && d.rt) r.rt = d.rt;
+    if (d.imdb) r.imdb = d.imdb;
+    if (changed && window.onEnriched) window.onEnriched(r);
+  } catch (e) {
+    r.status =
+      'the lookup could not be reached or did not return data (is this the Netlify site, and has it redeployed?)';
+  } finally {
+    if (window.onStatus) window.onStatus(r);
+  }
+}
+export function ph(r) {
+  const p = el('span', r.title, 'ph');
+  p.setAttribute('aria-hidden', 'true');
+  return p;
+}
+export function cover(r) {
+  const f = el('span', null, 'frame');
+  if (!isImg(r.img)) {
+    f.append(ph(r));
+    return f;
+  }
+  const i = new Image();
+  i.loading = 'lazy';
+  i.alt = '';
+  i.className = 'cover';
+  i.src = r.img;
+  i.onerror = () => i.replaceWith(ph(r));
+  f.append(i);
+  return f;
+}
 
-function linkify(parent,text){
-  String(text).split(/(https?:\/\/[^\s]+)/g).forEach(part=>{
-    if(/^https?:\/\//.test(part)){const a=el('a','View link');a.href=part;a.target='_blank';a.rel='noopener noreferrer';parent.append(a)}
-    else if(part)parent.append(document.createTextNode(part))})}
+export function linkify(parent, text) {
+  String(text)
+    .split(/(https?:\/\/[^\s]+)/g)
+    .forEach(part => {
+      if (/^https?:\/\//.test(part)) {
+        const a = el('a', 'View link');
+        a.href = part;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        parent.append(a);
+      } else if (part) parent.append(document.createTextNode(part));
+    });
+}
 
 /* --- "Join the stream" button, shown in the header of every page once TWITCH_CHANNEL is set --- */
-document.addEventListener('DOMContentLoaded',()=>{
-  const t=document.querySelector('header .tag');if(!TWITCH_CHANNEL||!t)return;
-  const a=el('a','Join the stream','twitch');
-  a.href='https://www.twitch.tv/'+encodeURIComponent(TWITCH_CHANNEL);a.target='_blank';a.rel='noopener noreferrer';
-  a.append(el('span',' (opens in a new tab)','sr'));t.after(a);
+document.addEventListener('DOMContentLoaded', () => {
+  const t = document.querySelector('header .tag');
+  if (!TWITCH_CHANNEL || !t) return;
+  const a = el('a', 'Join the stream', 'twitch');
+  a.href = 'https://www.twitch.tv/' + encodeURIComponent(TWITCH_CHANNEL);
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  a.append(el('span', ' (opens in a new tab)', 'sr'));
+  t.after(a);
   // the same link inside the watch-party clock, where latecomers are looking
-  const c=document.querySelector('.clock');
-  if(c){const b=a.cloneNode(true);b.firstChild.textContent='Join Stream';b.className='twitch clock-join';c.append(b)}});
+  const c = document.querySelector('.clock');
+  if (c) {
+    const b = a.cloneNode(true);
+    b.firstChild.textContent = 'Join Stream';
+    b.className = 'twitch clock-join';
+    c.append(b);
+  }
+});

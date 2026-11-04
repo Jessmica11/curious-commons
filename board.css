@@ -1,0 +1,246 @@
+:root {
+  --gold: #d9b765;
+  --goldl: #f0d890;
+  --text: #ece6df;
+  --text2: #c7b8ac;
+  --line: rgba(217, 183, 101, 0.3);
+  --paper: #f5eee3;
+  --ink: #2a1d17;
+  --muted: #55453b;
+  --link: #1d3f6b;
+  --stamp: #243f73;
+  --scale: 1;
+}
+html,
+body {
+  margin: 0;
+  background: transparent;
+  overflow: hidden;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  display: flex;
+  justify-content: center;
+  padding: 6px 0;
+  font-family: Inter, system-ui, sans-serif;
+}
+.board {
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transform: scale(var(--scale));
+  transform-origin: top center;
+}
+
+/* the site's card, framed like the clock plaque */
+.card {
+  position: relative;
+  padding: 14px 18px 16px;
+  border-radius: 14px;
+  color: var(--text);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0) 45%),
+    #121c17;
+  border: 2px solid #c79a3a;
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, 0.65),
+    inset 0 0 0 1px #6b4a10,
+    inset 0 1px 0 rgba(255, 236, 170, 0.2);
+}
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(240, 210, 140, 0.22);
+  border-radius: 9px;
+  pointer-events: none;
+}
+h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 4px;
+  font:
+    700 13px Cinzel,
+    serif;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+h2::before {
+  content: '';
+  flex: none;
+  width: 7px;
+  height: 7px;
+  background: var(--gold);
+  transform: rotate(45deg);
+}
+h2::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--line), transparent);
+}
+.film {
+  margin: 0 0 10px;
+  font:
+    italic 500 19px/1.2 'Cormorant Garamond',
+    Georgia,
+    serif;
+  color: #e3d8cc;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.chip {
+  background: rgba(217, 183, 101, 0.1);
+  border: 1px solid rgba(217, 183, 101, 0.5);
+  border-radius: 999px;
+  padding: 3px 11px;
+  font:
+    600 13.5px/1.35 Inter,
+    sans-serif;
+  color: var(--goldl);
+}
+.chip.free {
+  background: rgba(217, 183, 101, 0.22);
+  border-color: rgba(240, 216, 144, 0.8);
+  color: #fff3c8;
+}
+.none {
+  margin: 2px 0 0;
+  font:
+    italic 500 17px 'Cormorant Garamond',
+    Georgia,
+    serif;
+  color: var(--text2);
+}
+.foot {
+  margin: 10px 0 0;
+  font:
+    600 10.5px Inter,
+    sans-serif;
+  letter-spacing: 0.06em;
+  color: var(--text2);
+}
+
+/* library checkout slip (stays paper) */
+.slip {
+  position: relative;
+  padding: 12px 14px 10px;
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid #b9a58f;
+  box-shadow:
+    inset 0 0 30px rgba(107, 79, 29, 0.14),
+    0 14px 30px rgba(0, 0, 0, 0.6);
+  font-family: 'Special Elite', 'Courier New', monospace;
+}
+.slip-h {
+  text-align: center;
+  font:
+    700 12px Cinzel,
+    serif;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  border-bottom: 3px double var(--ink);
+  padding-bottom: 6px;
+}
+.body {
+  position: relative;
+}
+.body::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 84px;
+  width: 2px;
+  background: #b3473b;
+  opacity: 0.65;
+}
+.sub,
+.pins li {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 14px;
+}
+.sub {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-bottom: 2px solid var(--ink);
+  padding: 4px 0;
+}
+.pins {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.pins li {
+  align-items: baseline;
+  border-bottom: 1px solid rgba(42, 33, 24, 0.35);
+  padding: 7px 0;
+  min-height: 40px;
+  font-size: 14px;
+  line-height: 1.3;
+}
+.pins li:last-child {
+  border-bottom: 0;
+}
+.stamp {
+  color: var(--stamp);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  display: inline-block;
+  transform: rotate(-2deg);
+}
+.note {
+  color: var(--link);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+.note small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pins .empty {
+  color: var(--muted);
+  font-style: italic;
+}
+.pins li.new {
+  animation: arrive 2.4s ease-out;
+}
+@keyframes arrive {
+  0% {
+    background: rgba(217, 183, 101, 0.55);
+  }
+  100% {
+    background: transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pins li.new {
+    animation: none;
+  }
+}
+[hidden] {
+  display: none !important;
+}
