@@ -25,8 +25,8 @@ function chat(say, s, origin) {
   const [mode, val] = String(s.clock || '').split('|');
   let msg;
   if (say === 'now') {
-    msg = s.title ? `Now showing: ${s.title}. Where to watch, the watch-party clock and notes: ${page}`
-                  : `Nothing is showing right now. See what's coming up: ${origin}`;
+    msg = s.title ? `Now on view: ${s.title}. Where to watch, the watch-party clock and notes: ${page}`
+                  : `Nothing is on view right now. See what's opening soon: ${origin}`;
   } else if (mode === 'run') {
     msg = `We're at ${hms(Math.max(0, (Date.now() - Date.parse(val)) / 1000))}${film}. Skip your copy to that time to watch along: ${page}`;
   } else if (mode === 'pause') {
