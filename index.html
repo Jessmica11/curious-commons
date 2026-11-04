@@ -34,6 +34,34 @@
 .cap .badge{font-size:.66rem;padding:.12rem .55rem;letter-spacing:.06em}
 #tonight{font-size:1.05rem}
 }
+/* Past Screenings: the archive drawer, set apart from the live schedule above */
+.sec-past{margin-top:2.75rem;padding:1.25rem 1.25rem 1.5rem;border-radius:12px;background:rgba(0,0,0,.30);border:1px solid rgba(217,183,101,.22);box-shadow:inset 0 3px 16px rgba(0,0,0,.55)}
+.sec-past h3{display:flex;align-items:center;gap:.7rem;margin-top:0;color:var(--brassl)}
+.sec-past h3::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(210,173,95,.45),transparent)}
+.sec-past>.meta{margin-top:0;font-style:italic;font-family:var(--serif);font-size:1.1rem}
+.sec-past .wall{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:1.5rem 1.1rem}
+.sec-past .wall li{padding:6px 2px 0}
+.sec-past .frame{padding:7px;filter:saturate(.55) brightness(.82);transition:filter .2s}
+.sec-past .frame::after{display:none}
+.sec-past .frame::before{inset:-4px}
+.sec-past .cover,.sec-past .ph{filter:sepia(.35)}
+.sec-past .ph{font-size:.78rem;overflow:hidden;word-break:break-word}
+.sec-past .wall a:hover .frame,.sec-past .wall a:focus-visible .frame{filter:none}
+.sec-past .wall .cap{margin:.7rem 2px 0;padding:.45rem .45rem .5rem;border-radius:2px;background:#f7f0de;border:1px solid #b9a77c;box-shadow:inset 0 0 18px rgba(107,79,29,.16),0 3px 8px rgba(0,0,0,.45)}
+.sec-past .wall .cap .d{font:400 .72rem 'Special Elite','Courier New',monospace;letter-spacing:0;color:#243f73;transform:rotate(-1.5deg)}
+.sec-past .wall .cap .d::before{content:'Screened '}
+.sec-past .wall .cap .n{font:600 1.05rem/1.2 var(--serif);letter-spacing:0;color:var(--ink);margin:.15rem 0 .2rem}
+.sec-past .wall .cap .m{font-size:.72rem;color:var(--muted);margin-bottom:0}
+@media(max-width:560px){
+.sec-past{margin-left:-.35rem;margin-right:-.35rem;padding:1rem .8rem 1.2rem}
+.sec-past .wall{grid-template-columns:repeat(3,minmax(0,1fr));gap:1.1rem .55rem}
+.sec-past .frame{padding:5px}
+.sec-past .ph{font-size:.6rem;letter-spacing:.02em;padding:.3rem}
+.sec-past .wall .cap{padding:.35rem .3rem .4rem}
+.sec-past .wall .cap .n{font-size:.88rem}
+.sec-past .wall .cap .d{font-size:.62rem}
+.sec-past .wall .cap .m{display:none}
+}
 </style>
 </head>
 <body>
@@ -74,7 +102,7 @@ function render(){
   GROUPS.forEach(([k,title,blurb])=>{
     const rows=S.rows.filter(r=>when(r)===k).sort((a,b)=>k==='past'?(b.date||0)-(a.date||0):(a.date||1e15)-(b.date||1e15));
     if(!rows.length)return;
-    const sec=el('section',null,'wall-sec'),h=el('h3',title),ul=el('ul',null,'gal wall');
+    const sec=el('section',null,'wall-sec sec-'+k),h=el('h3',title),ul=el('ul',null,'gal wall');
     h.id='g-'+k;sec.setAttribute('aria-labelledby',h.id);
     rows.forEach(r=>{
       enrich(r);
