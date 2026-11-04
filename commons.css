@@ -86,6 +86,12 @@ body {
   display: grid;
   gap: 1.25rem;
 }
+/* wide screens: the page grows with the window so the side gutters stay in proportion, up to a cap */
+@media (min-width: 1440px) {
+  .wrap {
+    max-width: min(88vw, 1640px);
+  }
+}
 .grid {
   display: grid;
   gap: 1.25rem;
@@ -244,6 +250,7 @@ h3 {
 .desc {
   white-space: pre-line;
   margin-top: 0.75rem;
+  max-width: 75ch; /* keeps long descriptions comfortable to read on wide cards */
 }
 summary {
   cursor: pointer;
