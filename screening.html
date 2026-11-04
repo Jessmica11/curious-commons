@@ -3,13 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#080d0b">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>The Curiosity Commons</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=IM+Fell+English:ital@0;1&family=Inter:wght@400;600&family=Special+Elite&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;600&family=Special+Elite&display=swap">
 <link rel="stylesheet" href="commons.css">
 <style>
-#notes{min-height:240px;max-height:540px;overflow:auto;background:#f7f0de;border:1px solid rgba(217,183,101,.6);border-radius:10px;padding:1rem 1.15rem;font:1.25rem/1.6 var(--serif);color:var(--ink)}
+#notes{min-height:240px;max-height:540px;overflow:auto;background:#f5eee3;border:1px solid rgba(217,183,101,.6);border-radius:10px;padding:1rem 1.15rem;font:1.25rem/1.6 var(--serif);color:var(--ink)}
 #notes:empty::before{content:attr(data-placeholder);color:var(--muted)}
 #notes h3{font:700 1.1rem var(--serif);text-transform:none;letter-spacing:0;margin:.8rem 0 .2rem;color:var(--ink)}
 #notes blockquote{border-left:4px solid var(--brass);margin:.6rem 0;padding:.1rem .9rem;font-style:italic}
@@ -17,7 +21,7 @@
 #notes p,#notes div{margin:0 0 .5rem}
 .tools{display:flex;flex-wrap:wrap;gap:.35rem;margin:.75rem 0}
 .tools button{min-width:44px;margin:0;padding:.3rem .65rem;background:var(--surf2);color:var(--text);border:1px solid rgba(217,183,101,.4);border-radius:8px;box-shadow:none;font-size:.95rem;font-weight:600}
-.tools button:hover{filter:none;background:#26392f}
+.tools button:hover{filter:none;background:#22332a}
 .tools button[aria-pressed="true"]{background:var(--gold);color:#1f160a}
 #linkForm{display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .75rem;padding:.6rem;background:var(--surf2);border:1px solid var(--line);border-radius:10px}
 #linkForm[hidden]{display:none}
@@ -65,7 +69,7 @@ ol.pins li:hover .unpin,.unpin:focus-visible{opacity:1}
 }
 .kick[hidden],.clock[hidden],.howto[hidden],.tools button[hidden]{display:none}
 .kick{display:flex;align-items:center;gap:.6rem;font:700 .95rem Cinzel,serif;letter-spacing:.14em;text-transform:uppercase;color:var(--brassl);margin:0 0 .35rem}
-.cameo{width:40px;height:40px;border-radius:50%;flex:none;background:url(profile.png) center 18%/cover;border:2px solid var(--brassl);box-shadow:0 0 0 1px #6b4a10}
+.cameo{width:40px;height:40px;border-radius:50%;flex:none;background:url(profile.webp) center 18%/cover;border:2px solid var(--brassl);box-shadow:0 0 0 1px #6b4a10}
 /* same outer size as the channel portrait, so nothing jumps when the poster swaps in */
 header.film .frame{width:180px;height:243px;flex:none}
 header.film .frame .cover,header.film .frame .ph{width:100%;height:100%;aspect-ratio:auto}
@@ -93,7 +97,7 @@ header.film h1{font-size:clamp(1.6rem,4.5vw,2.6rem);line-height:1.15}
 <div class="wrap">
 <a class="back" href="index.html">← Gallery wall</a>
 <header id="hdr">
-  <img src="profile.png" alt="Portrait of a woman in a white gown seated before towering stacks of old books">
+  <img src="profile.webp" width="355" height="480" alt="Portrait of a woman in a white gown seated before towering stacks of old books">
   <div><p class="kick" id="kick" hidden><span class="cameo" aria-hidden="true"></span>The Curiosity Commons</p><h1 id="h1">The Curiosity Commons</h1><p class="tag">Commoners gaining power through knowledge</p></div>
 </header>
 
@@ -114,7 +118,7 @@ header.film h1{font-size:clamp(1.6rem,4.5vw,2.6rem);line-height:1.15}
 <main id="main" class="grid">
  <div class="stack">
   <section class="card" aria-labelledby="nowh">
-    <h2 id="nowh">Now Showing</h2>
+    <h2 id="nowh">Now on View</h2>
     <div class="sr" role="status" id="status"></div>
     <div id="doc"><p class="none">Fetching the almanac…</p></div>
   </section>
@@ -181,7 +185,7 @@ header.film h1{font-size:clamp(1.6rem,4.5vw,2.6rem);line-height:1.15}
     <button id="bPlay" type="button">Play</button><button id="bPause" class="alt" type="button">Pause</button><button id="bReset" class="alt" type="button">Reset</button>
     <h3>Live screening</h3>
     <p>The date picks the film automatically. Use these to override it.</p>
-    <button id="bGoLive" type="button">Make this film Now Showing</button><button id="bUnlive" class="alt" type="button">Back to the schedule</button>
+    <button id="bGoLive" type="button">Put this film on view</button><button id="bUnlive" class="alt" type="button">Back to the schedule</button>
    </div>
    <div>
     <h3>Pin a link</h3>
@@ -204,7 +208,7 @@ window.onEnriched=r=>{if(r===S.cur)renderDoc()};
 const nk=r=>'cc_notes_'+r.title+'|'+r.dateLabel;
 function renderDoc(){
   const r=S.cur,box=$('doc');box.textContent='';if(!r)return;
-  $('nowh').textContent={now:'Now Showing',soon:'Coming Soon',past:'Past Screening'}[when(r)];
+  $('nowh').textContent={now:'Now on View',soon:'Opening Soon',past:'From the Archive'}[when(r)];
   // the watch-party clock only belongs on the Now Showing film; the host still sees it everywhere, to run the desk
   const live=when(r)==='now';
   document.querySelector('.clock').hidden=!live&&!HOST;$('howto').hidden=!live;
@@ -212,7 +216,7 @@ function renderDoc(){
   // once a film is open, its framed poster takes the portrait's place; the channel stays named and pictured beside it
   const hd=$('hdr'),film=isImg(r.img);hd.classList.toggle('film',film);$('kick').hidden=!film;$('h1').textContent=film?r.title:'The Curiosity Commons';
   if(film){const f=cover(r);f.setAttribute('role','img');f.setAttribute('aria-label','Poster for '+r.title);hd.firstElementChild.replaceWith(f)}
-  else if(hd.firstElementChild.tagName!=='IMG'){const i=new Image();i.src='profile.png';i.alt='Portrait of a woman in a white gown seated before towering stacks of old books';hd.firstElementChild.replaceWith(i)}
+  else if(hd.firstElementChild.tagName!=='IMG'){const i=new Image();i.src='profile.webp';i.alt='Portrait of a woman in a white gown seated before towering stacks of old books';hd.firstElementChild.replaceWith(i)}
   document.title=r.title+' · The Curiosity Commons';
   box.append(el('p',[r.dateLabel,r.year,r.dur].filter(Boolean).join(' · '),'meta'));
   // "Documentary" is on every film, so drop it; keep any other genres, then label the text
@@ -355,13 +359,13 @@ if(HOST){
   // Play also makes the film on this page Now Showing, for everyone
   $('bPlay').onclick=()=>{const t=parseHMS($('setT').value),s=t!=null?t:(secs()||0);S.override=true;S.clock={running:true,base:s,at:Date.now()};$('setT').value='';
     const r=S.cur;if(r){S.liveTitle=r.title;S.manualPick=false;S.hold=Date.now()+30000;renderDoc()}
-    tick();send({action:'clock',clock:clockStr(),title:r?r.title:''},(r?'Clock started, and '+r.title+' is now Now Showing.':'Clock started.')+VIEW)};
+    tick();send({action:'clock',clock:clockStr(),title:r?r.title:''},(r?'Clock started, and '+r.title+' is now on view.':'Clock started.')+VIEW)};
   $('bPause').onclick=()=>{const s=secs();if(s==null)return;S.override=true;S.clock={running:false,base:s,at:Date.now()};pushClock('Clock paused.')};
   // Reset clears the clock and takes the film off Now Showing, so it goes back to Coming Soon (or Past)
   $('bReset').onclick=()=>{S.override=true;S.clock=null;S.liveTitle='';S.manualPick=false;S.hold=Date.now()+30000;
-    if(S.cur)renderDoc();tick();send({action:'clock',clock:'',title:''},'Clock reset, and the film is off Now Showing.'+VIEW)};
+    if(S.cur)renderDoc();tick();send({action:'clock',clock:'',title:''},'Clock reset, and the film is no longer on view.'+VIEW)};
 
-  $('bGoLive').onclick=()=>{if(!S.cur)return;S.liveTitle=S.cur.title;S.manualPick=false;S.hold=Date.now()+30000;renderDoc();send({action:'live',title:S.cur.title},'Now Showing set.'+VIEW)};
+  $('bGoLive').onclick=()=>{if(!S.cur)return;S.liveTitle=S.cur.title;S.manualPick=false;S.hold=Date.now()+30000;renderDoc();send({action:'live',title:S.cur.title},'Now on view.'+VIEW)};
   $('bUnlive').onclick=()=>{S.liveTitle='';S.manualPick=false;S.hold=Date.now()+30000;const n=autoPick();if(n){S.cur=n;renderDoc();enrich(n)}send({action:'live',title:''},'Back to the schedule.'+VIEW)};
 
   $('bPin').onclick=async()=>{
