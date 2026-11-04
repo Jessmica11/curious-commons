@@ -79,37 +79,61 @@ function renderDoc() {
     set('meta[property="og:url"]', 'content', u);
     set('meta[property="og:title"]', 'content', document.title);
   }
-  box.append(el('p', [r.dateLabel, r.year, r.dur].filter(Boolean).join(' · '), 'meta'));
-  // critic and audience scores, when there are any; IMDb only once enough people have rated it to mean something
-  const scores = el('p', null, 'scores');
-  const score = (src, value, note, hint) => {
-    const s = el('span', null, 'score');
-    s.title = hint;
-    s.append(el('span', src, 'score-src'), el('span', ' ' + note, 'sr'), el('b', value));
-    scores.append(s);
-  };
-  if (r.rt)
-    score(
-      'Rotten Tomatoes',
-      r.rt,
-      'critics score',
-      "Share of professional critics' reviews that are positive"
-    );
-  if (r.imdb && r.imdb.votes >= 1000)
-    score(
-      'IMDb',
-      r.imdb.rating + '/10',
-      'audience rating',
-      `Average of ${r.imdb.votes.toLocaleString()} IMDb user ratings`
-    );
-  if (scores.childNodes.length) box.append(scores);
-  // "Documentary" is on every film, so drop it; keep any other genres, then label the text
-  const g = (r.cats || '')
+  // the wall placard: labelled facts on the left, critic and audience scores on the right
+  const longDate = d =>
+    d.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      ...(d.getFullYear() !== new Date().getFullYear() && { year: 'numeric' })
+    });
+  // "Documentary" is on every film, so it is left out of the genre
+  const genre = (r.cats || '')
     .split(',')
     .map(x => x.trim())
     .filter(x => x && !/^documentary$/i.test(x))
     .join(', ');
-  if (g) box.append(el('p', g, 'cats'));
+  const facts = el('dl', null, 'facts');
+  const fact = (label, value) => value && facts.append(el('dt', label), el('dd', value));
+  fact(
+    { now: 'On view', soon: 'Opening', past: 'Shown' }[when(r)],
+    r.date ? longDate(r.date) : r.dateLabel
+  );
+  fact('Released', r.year);
+  fact('Runtime', r.dur);
+  fact('Genre', genre);
+  const tiles = el('div', null, 'tiles');
+  const tile = (value, out, source, kind, hint) => {
+    const t = el('div', null, 'tile'),
+      b = el('b', value),
+      label = el('span', source);
+    t.title = hint;
+    if (out) b.append(el('small', out));
+    label.append(el('small', kind));
+    t.append(b, label);
+    tiles.append(t);
+  };
+  if (r.rt)
+    tile(
+      r.rt,
+      '',
+      'Rotten Tomatoes',
+      'critics',
+      "Share of professional critics' reviews that are positive"
+    );
+  // IMDb only once enough people have rated it to mean something
+  if (r.imdb && r.imdb.votes >= 1000)
+    tile(
+      r.imdb.rating,
+      '/10',
+      'IMDb',
+      'audience',
+      `Average of ${r.imdb.votes.toLocaleString()} IMDb user ratings`
+    );
+  const placard = el('div', null, 'placard');
+  placard.append(facts);
+  if (tiles.childNodes.length) placard.append(tiles);
+  box.append(placard);
   box.append(el('h3', 'Description'));
   if (r.desc.length > 320) {
     const d = el('p', r.desc.slice(0, 300).trim() + '…', 'desc'),

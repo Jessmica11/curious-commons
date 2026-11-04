@@ -55,6 +55,15 @@ export const el = (t, txt, cls) => {
 export const safe = u => /^https?:\/\//i.test(u);
 
 /* --- schedule --- */
+// "103", "1H 43M", "1 hr 43 min" all become "1h 43m"
+const tidyDur = s =>
+  /^\d+$/.test(s)
+    ? [Math.floor(s / 60) && Math.floor(s / 60) + 'h', s % 60 && (s % 60) + 'm']
+        .filter(Boolean)
+        .join(' ')
+    : s
+        .replace(/(\d+)\s*(?:hours?|hrs?|h)\b/gi, '$1h')
+        .replace(/(\d+)\s*(?:minutes?|mins?|m)\b/gi, '$1m');
 export function parseSchedule(t) {
   const L = t.cols.map(c => (c.label || '').toLowerCase());
   const col = k => L.map((l, i) => (l.includes(k) ? i : -1)).filter(i => i >= 0);
@@ -92,7 +101,7 @@ export function parseSchedule(t) {
         dateLabel: cell(c[iDate]),
         title: cell(c[iTitle]),
         year: /^\d{4}$/.test(yr) ? yr : '',
-        dur: cell(c[iDur]),
+        dur: tidyDur(cell(c[iDur])),
         desc: cell(c[iDesc]),
         cats: cell(c[iCats]),
         tags: cell(c[iTags]),
@@ -200,7 +209,7 @@ export async function enrich(r) {
       changed = true;
     }
     if (!r.dur && d.runtime) {
-      r.dur = Math.floor(d.runtime / 60) + 'H ' + (d.runtime % 60) + 'M';
+      r.dur = tidyDur(String(d.runtime));
       changed = true;
     }
     ['free', 'open', 'stream'].forEach(k => {

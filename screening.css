@@ -404,26 +404,82 @@ header.film h1 {
   }
 }
 
-/* critic and audience score labels on a film's page */
-.scores {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin: 0.5rem 0 0.25rem;
+/* the wall placard on a film's page: labelled facts, with the score tiles beside them (below them on phones) */
+.placard {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1.25rem 1.5rem;
+  align-items: start;
+  margin-bottom: 0.5rem;
 }
-.score {
-  display: inline-flex;
+.facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.55rem 1.25rem;
   align-items: baseline;
-  gap: 0.5rem;
-  padding: 0.2rem 0.8rem;
-  border: 1px solid rgba(217, 183, 101, 0.5);
-  border-radius: 999px;
-  background: rgba(217, 183, 101, 0.08);
-  font: 600 0.85rem var(--sans);
+  margin: 0;
+}
+.facts dt {
+  font: 700 0.72rem var(--display);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--brassl);
+}
+.facts dd {
+  margin: 0;
+  font: 600 1.05rem/1.3 var(--sans);
+}
+.tiles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.tile {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.55rem 1rem 0.55rem 0.9rem;
+  border: 1px solid rgba(217, 183, 101, 0.35);
+  border-radius: 10px;
+  background: rgba(217, 183, 101, 0.07);
+}
+.tile b {
+  font: 700 1.7rem/1 var(--display);
+  color: var(--goldl);
+}
+.tile span {
+  font: 600 0.8rem/1.25 var(--sans);
+}
+.tile small {
+  display: block;
+  font: 400 0.75rem var(--sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--text2);
 }
-.score b {
-  font: 700 1rem var(--display);
-  letter-spacing: 0.04em;
-  color: var(--goldl);
+.tile b small {
+  display: inline;
+  font-size: 0.55em;
+  letter-spacing: 0;
+}
+@media (max-width: 560px) {
+  .placard {
+    grid-template-columns: 1fr;
+  }
+  .tiles {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+#doc h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 1.4rem;
+}
+#doc h3::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--line), transparent);
 }
