@@ -75,6 +75,8 @@ function render() {
       h = el('h3', title),
       ul = el('ul', null, 'gal wall');
     h.id = 'g-' + k;
+    // the plaques already say "Opening soon" or "Future exhibition", so this heading is only for screen readers
+    if (k === 'soon') h.className = 'sr';
     sec.setAttribute('aria-labelledby', h.id);
     rows.forEach(r => {
       enrich(r);
