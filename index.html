@@ -7,7 +7,20 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>The Curiosity Commons</title>
+<title>The Curiosity Commons · Documentary watch parties on Twitch</title>
+<meta name="description" content="A Twitch documentary club. Watch along on your own screen while we chat live: what's on view, where to watch for free, the watch-party clock and research.">
+<link rel="canonical" href="https://curious-commons.netlify.app/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="The Curiosity Commons">
+<meta property="og:title" content="The Curiosity Commons · Documentary watch parties on Twitch">
+<meta property="og:description" content="A Twitch documentary club. Watch along on your own screen while we chat live: what's on view, where to watch for free, the watch-party clock and research.">
+<meta property="og:url" content="https://curious-commons.netlify.app/">
+<meta property="og:image" content="https://curious-commons.netlify.app/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Curiosity Commons: a gilt-framed portrait of a woman before stacks of old books, with the channel name in gold">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://curious-commons.netlify.app/#site","name":"The Curiosity Commons","url":"https://curious-commons.netlify.app/","description":"A Twitch documentary club. Watch along on your own screen while we chat live: what's on view, where to watch for free, the watch-party clock and research.","publisher":{"@id":"https://curious-commons.netlify.app/#org"}},{"@type":"Organization","@id":"https://curious-commons.netlify.app/#org","name":"The Curiosity Commons","url":"https://curious-commons.netlify.app/","logo":"https://curious-commons.netlify.app/apple-touch-icon.png","sameAs":["https://www.twitch.tv/curiosity_commons"]}]}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;600&family=Special+Elite&display=swap">
@@ -31,6 +44,7 @@
 .wall .cap .d{font-size:.8rem}
 .cap .m{display:block;font-size:.85rem;color:#3a2808;margin-bottom:.5rem}
 .cap .badge{margin-top:auto}
+.badge.later{background:rgba(255,246,220,.5);color:var(--leather);border:1px solid var(--leather);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
 /* On View: a brass gallery picture light over the film that is showing now */
 .wall li.lit{position:relative;isolation:isolate;padding-top:34px}
 .wall li.lit::before{content:'';position:absolute;top:5px;left:50%;transform:translateX(-50%);width:58%;height:12px;z-index:3;border-radius:6px 6px 8px 8px;
@@ -121,6 +135,8 @@ function showDebug(){
     p.append(document.createTextNode('TMDB cell = '+(r.tmdb||'(empty)')+' | poster = '+(r.img||'(none)')+' | lookup = '+(r.status||'not run yet')));d.append(p)})}
 window.onStatus=()=>{if(DEBUG)showDebug()};
 let q;window.onEnriched=()=>{cancelAnimationFrame(q);q=requestAnimationFrame(render)};
+// a film more than a week away (or with no date yet) is a Future exhibition; within the week it is Opening soon
+const isLater=r=>!r.date||r.date-midnight()>7*DAY;
 const GROUPS=[['now','Now on View','On view in the Commons right now. Open it for the watch-party clock.'],['soon','Opening Soon',''],['past','From the Archive','Catch up on what the Curator has shown.']];
 function render(){
   if(DEBUG)showDebug();
@@ -135,7 +151,7 @@ function render(){
       const li=document.createElement('li'),a=document.createElement('a'),cap=el('span',null,'cap');
       a.href='screening.html?show='+encodeURIComponent(r.title);
       cap.append(el('span',r.dateLabel,'d'),el('span',r.title,'n'),el('span',[r.year,r.dur].filter(Boolean).join(' \u00b7 '),'m'));
-      if(k!=='past')cap.append(el('span',k==='now'?'On view':'Opening soon','badge '+k));
+      if(k!=='past'){const far=k==='soon'&&isLater(r);cap.append(el('span',k==='now'?'On view':far?'Future exhibition':'Opening soon','badge '+(far?'later':k)))}
       if(k==='now')li.classList.add('lit');
       a.append(cover(r),cap);li.append(a);ul.append(li)});
     sec.append(h);if(blurb)sec.append(el('p',blurb,'meta'));sec.append(ul);wall.append(sec)});

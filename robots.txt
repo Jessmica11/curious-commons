@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://curious-commons.netlify.app/sitemap.xml
