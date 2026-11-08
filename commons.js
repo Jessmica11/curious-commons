@@ -124,6 +124,9 @@ export const midnight = () => {
 };
 // 'now' = the film the host started the clock on (Play), until Reset or "Back to the schedule".
 // Every other film: 'soon' if its date is today or later (or it has no date), 'past' if its date has gone by.
+// More than a week away, or no date yet: a Future exhibition. Counted in calendar days so next week's film,
+// exactly 7 days out on screening day, is not also "Opening soon" (and daylight-saving changes cannot tip it).
+export const isLater = r => !r.date || Math.round((r.date - midnight()) / DAY) >= 7;
 export function when(r) {
   const lt = (S.liveTitle || '').toLowerCase();
   if (lt && r.title.toLowerCase() === lt) return 'now';

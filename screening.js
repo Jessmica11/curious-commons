@@ -1,8 +1,6 @@
 import {
   S,
   $,
-  midnight,
-  DAY,
   when,
   HOST,
   isImg,
@@ -19,7 +17,8 @@ import {
   enrich,
   parseSchedule,
   SCHEDULE_TAB,
-  LIVE_FN
+  LIVE_FN,
+  isLater
 } from './commons.js';
 
 window.onEnriched = r => {
@@ -33,7 +32,7 @@ function renderDoc() {
   if (!r) return;
   $('nowh').textContent = {
     now: 'Now on View',
-    soon: !r.date || r.date - midnight() > 7 * DAY ? 'Future Exhibition' : 'Opening Soon',
+    soon: isLater(r) ? 'Future Exhibition' : 'Opening Soon',
     past: 'From the Archive'
   }[when(r)];
   // the watch-party clock only belongs on the Now Showing film; the host still sees it everywhere, to run the desk

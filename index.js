@@ -2,8 +2,6 @@ import {
   $,
   el,
   S,
-  midnight,
-  DAY,
   when,
   enrich,
   cover,
@@ -13,7 +11,8 @@ import {
   LIVE_TAB,
   cell,
   parseSchedule,
-  SCHEDULE_TAB
+  SCHEDULE_TAB,
+  isLater
 } from './commons.js';
 
 const DEBUG = new URLSearchParams(location.search).has('debug');
@@ -53,8 +52,6 @@ window.onEnriched = () => {
   cancelAnimationFrame(q);
   q = requestAnimationFrame(render);
 };
-// a film more than a week away (or with no date yet) is a Future exhibition; within the week it is Opening soon
-const isLater = r => !r.date || r.date - midnight() > 7 * DAY;
 const GROUPS = [
   ['now', 'Now on View', 'On view in the Commons right now. Open it for the watch-party clock.'],
   ['soon', 'Opening Soon', ''],
