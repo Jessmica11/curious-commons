@@ -126,12 +126,16 @@ main .stack > .card:last-child {
   max-height: none;
 }
 /* host only: the remove control sits quietly at the row's end and shows on hover or focus */
+/* the × floats at the row's right edge, so the link keeps the full width of its column */
 ol.pins li.has-x {
-  grid-template-columns: 84px 1fr auto;
-  column-gap: 0.6rem;
+  position: relative;
+  padding-right: 2.25rem;
 }
 .unpin {
-  align-self: center;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -155,13 +159,12 @@ ol.pins li.has-x {
     opacity 0.15s,
     background 0.15s,
     color 0.15s;
-  position: relative;
 }
 .unpin::after {
   content: '';
   position: absolute;
-  inset: -8px;
-} /* a 44px tap target around the small button */
+  inset: -8px 0 -8px -8px;
+} /* a larger tap target around the small button, kept inside the slip */
 .unpin span {
   font-size: 1.25rem;
   line-height: 1;
@@ -190,11 +193,6 @@ ol.pins li:hover .unpin,
 @media (hover: none) {
   .unpin {
     opacity: 0.8;
-  }
-}
-@media (max-width: 560px) {
-  ol.pins li.has-x {
-    grid-template-columns: 68px 1fr auto;
   }
 }
 /* the clock is the most important card for latecomers: first on the page, big, and it follows you as you scroll */

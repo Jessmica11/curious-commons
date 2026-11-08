@@ -317,6 +317,9 @@ a.chip:focus-visible {
 
 /* library checkout slip (stays paper) */
 .slip {
+  /* the time column and the gap to the resources; the red margin line sits just right of the time column */
+  --stamp-col: 76px;
+  --slip-gap: 1.5rem;
   background: #f5eee3;
   color: var(--ink);
   border: 1px solid #b9a58f;
@@ -347,7 +350,7 @@ a.chip:focus-visible {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 92px;
+  left: calc(var(--stamp-col) + 4px);
   width: 2px;
   background: #b3473b;
   opacity: 0.65;
@@ -363,8 +366,8 @@ a.chip:focus-visible {
 .slip-sub,
 ol.pins li {
   display: grid;
-  grid-template-columns: 84px 1fr;
-  gap: 1.2rem;
+  grid-template-columns: var(--stamp-col) 1fr;
+  gap: var(--slip-gap);
 }
 .slip-sub {
   font-size: 0.75rem;
@@ -379,6 +382,7 @@ ol.pins {
   margin: 0;
   max-height: 26rem;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 ol.pins li {
   align-items: baseline;
@@ -632,12 +636,8 @@ button:hover,
   .card::before {
     inset: 5px;
   }
-  .slip-body::before {
-    left: 76px;
-  }
-  .slip-sub,
-  ol.pins li {
-    grid-template-columns: 68px 1fr;
-    gap: 1rem;
+  .slip {
+    --stamp-col: 68px;
+    --slip-gap: 1.25rem;
   }
 }
